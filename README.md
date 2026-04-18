@@ -17,7 +17,7 @@ These artefacts are designed for:
 
 ---
 
-## Artefacts
+## Artifacts
 
 | File | View | Description |
 |------|------|-------------|
