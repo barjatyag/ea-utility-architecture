@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utility Digital Transformation Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f7f5f0;
+  --surface:  #ffffff;
+  --ink:      #1a1410;
+  --muted:    #8a7e72;
+  --border:   #e2ddd6;
+  --rule:     #c8c0b4;
+
+  /* Domain palette */
+  --gen-c: #c84b00;  --gen-l: #fff3ed;  --gen-m: #ffd4b8;
+  --trn-c: #0055a4;  --trn-l: #edf4ff;  --trn-m: #b8d4f8;
+  --dst-c: #007a3d;  --dst-l: #edfaf3;  --dst-m: #b8ecd4;
+  --ret-c: #6b1fa8;  --ret-l: #f5eeff;  --ret-m: #d8b8f8;
+
+  /* Horizon palette */
+  --h1: #e85d04;
+  --h2: #0077cc;
+  --h3: #00915a;
+  --now: #c8002a;
+
+  --shadow: 0 2px 10px rgba(26,20,16,.07);
+  --shadow-h: 0 6px 24px rgba(26,20,16,.14);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:'Fraunces',Georgia,serif;min-height:100vh;}
+
+/* paper texture overlay */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.6;
+}
+
+.page{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:44px 32px 72px;}
+
+/* ── HEADER ── */
+header{
+  display:grid;grid-template-columns:1fr auto;
+  gap:20px;align-items:start;
+  margin-bottom:48px;
+  padding-bottom:28px;
+  border-bottom:2px solid var(--ink);
+}
+.header-left{}
+.eyebrow{
+  font-family:'DM Mono',monospace;font-size:10px;font-weight:500;
+  letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;
+}
+header h1{
+  font-size:clamp(26px,3.8vw,48px);font-weight:800;
+  line-height:1.0;letter-spacing:-1.5px;color:var(--ink);
+  font-style:italic;
+}
+header h1 em{font-style:normal;color:var(--h1);}
+.header-sub{
+  margin-top:10px;font-size:13px;color:var(--muted);
+  font-weight:300;font-style:italic;letter-spacing:.3px;
+}
+.header-right{
+  display:flex;flex-direction:column;gap:8px;align-items:flex-end;
+  padding-top:4px;
+}
+.header-meta{
+  font-family:'DM Mono',monospace;font-size:9.5px;color:var(--muted);
+  letter-spacing:.5px;text-align:right;line-height:1.7;
+}
+.horizon-pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px;}
+.h-pill{
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;
+  padding:3px 10px;border-radius:20px;text-transform:uppercase;font-weight:500;
+  border:1.5px solid;
+}
+.h-pill.h1{color:var(--h1);border-color:var(--h1);}
+.h-pill.h2{color:var(--h2);border-color:var(--h2);}
+.h-pill.h3{color:var(--h3);border-color:var(--h3);}
+
+/* ── HORIZON TIMELINE HEADER ── */
+.timeline-header{
+  display:grid;
+  grid-template-columns: 170px 1fr 1fr 1fr;
+  gap:0;margin-bottom:0;
+}
+.th-domain-col{
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);
+  padding:0 0 12px 0;
+}
+.th-hz{
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 8px 14px;border-bottom:3px solid;
+  gap:3px;
+}
+.th-hz.hz1{border-color:var(--h1);}
+.th-hz.hz2{border-color:var(--h2);}
+.th-hz.hz3{border-color:var(--h3);}
+
+.th-hz-label{
+  font-size:12px;font-weight:800;letter-spacing:-0.3px;
+}
+.hz1 .th-hz-label{color:var(--h1);}
+.hz2 .th-hz-label{color:var(--h2);}
+.hz3 .th-hz-label{color:var(--h3);}
+
+.th-hz-dates{
+  font-family:'DM Mono',monospace;font-size:9px;
+  color:var(--muted);letter-spacing:.5px;
+}
+.th-hz-theme{
+  font-size:10px;font-style:italic;font-weight:300;color:var(--muted);text-align:center;
+}
+
+/* ── DOMAIN ROW ── */
+.domain-row{
+  display:grid;
+  grid-template-columns: 170px 1fr 1fr 1fr;
+  gap:0;
+  border-radius:8px;
+  margin-bottom:10px;
+  overflow:hidden;
+  border:1.5px solid var(--border);
+  box-shadow:var(--shadow);
+  animation:fadeIn .5s ease both;
+}
+.domain-row:nth-child(2){animation-delay:.1s}
+.domain-row:nth-child(3){animation-delay:.2s}
+.domain-row:nth-child(4){animation-delay:.22s}
+.domain-row:nth-child(5){animation-delay:.24s}
+
+@keyframes fadeIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+
+/* Domain label cell */
+.domain-label{
+  display:flex;flex-direction:column;
+  justify-content:center;
+  padding:16px 14px;
+  border-right:2px solid var(--border);
+}
+.d-gen .domain-label{background:var(--gen-l);border-right-color:var(--gen-m);}
+.d-trn .domain-label{background:var(--trn-l);border-right-color:var(--trn-m);}
+.d-dst .domain-label{background:var(--dst-l);border-right-color:var(--dst-m);}
+.d-ret .domain-label{background:var(--ret-l);border-right-color:var(--ret-m);}
+
+.domain-icon-lg{font-size:22px;margin-bottom:5px;}
+.domain-name{font-size:13px;font-weight:800;letter-spacing:-.3px;line-height:1.1;}
+.d-gen .domain-name{color:var(--gen-c);}
+.d-trn .domain-name{color:var(--trn-c);}
+.d-dst .domain-name{color:var(--dst-c);}
+.d-ret .domain-name{color:var(--ret-c);}
+.domain-kpi{
+  font-family:'DM Mono',monospace;font-size:8.5px;
+  color:var(--muted);letter-spacing:.5px;margin-top:5px;line-height:1.6;
+}
+
+/* Horizon cells */
+.hz-cell{
+  padding:12px 10px;
+  border-right:1px solid var(--border);
+  background:var(--surface);
+}
+.hz-cell:last-child{border-right:none;}
+
+/* Initiative card */
+.init{
+  border-radius:5px;border-left:3px solid;
+  padding:8px 9px;margin-bottom:7px;
+  transition:transform .12s,box-shadow .12s;
+  cursor:default;
+}
+.init:last-child{margin-bottom:0;}
+.init:hover{transform:translateX(2px);box-shadow:var(--shadow-h);}
+
+/* horizon colouring of init cards */
+.hz-cell:nth-child(2) .init{border-left-color:var(--h1);background:rgba(232,93,4,.05);}
+.hz-cell:nth-child(3) .init{border-left-color:var(--h2);background:rgba(0,119,204,.05);}
+.hz-cell:nth-child(4) .init{border-left-color:var(--h3);background:rgba(0,145,90,.05);}
+
+.init-label{
+  font-family:'DM Mono',monospace;font-size:8px;
+  letter-spacing:1px;text-transform:uppercase;
+  opacity:.55;margin-bottom:2px;
+}
+.init-title{font-size:11px;font-weight:600;line-height:1.25;letter-spacing:-.2px;}
+.init-desc{font-size:9.5px;color:var(--muted);margin-top:3px;line-height:1.4;font-weight:300;font-style:italic;}
+.init-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
+.init-tag{
+  font-family:'DM Mono',monospace;font-size:7.5px;
+  padding:1px 5px;border-radius:2px;border:1px solid;
+  letter-spacing:.3px;text-transform:uppercase;
+}
+.hz-cell:nth-child(2) .init-tag{color:var(--h1);border-color:rgba(232,93,4,.35);}
+.hz-cell:nth-child(3) .init-tag{color:var(--h2);border-color:rgba(0,119,204,.35);}
+.hz-cell:nth-child(4) .init-tag{color:var(--h3);border-color:rgba(0,145,90,.35);}
+
+/* ── ENABLING FOUNDATIONS row ── */
+.foundations-row{
+  margin-top:14px;
+  border:1.5px solid var(--border);
+  border-radius:8px;overflow:hidden;
+  box-shadow:var(--shadow);
+  animation:fadeIn .5s ease .3s both;
+}
+.foundations-head{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;
+  background:var(--ink);color:#f7f5f0;
+}
+.foundations-head-title{
+  font-size:12px;font-weight:600;letter-spacing:.3px;
+}
+.foundations-head-sub{
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;
+  color:rgba(247,245,240,.45);margin-left:auto;
+}
+.foundations-body{
+  display:flex;flex-wrap:wrap;gap:10px;
+  padding:14px 16px;background:var(--surface);
+}
+
+/* Foundation card */
+.fnd{
+  flex:1 1 160px;max-width:220px;
+  border-radius:5px;border:1px solid var(--border);
+  padding:9px 11px 9px 32px;
+  position:relative;background:var(--bg);
+  transition:box-shadow .12s;
+}
+.fnd:hover{box-shadow:var(--shadow-h);}
+.fnd-icon{position:absolute;top:8px;left:9px;font-size:14px;}
+.fnd-name{font-size:11px;font-weight:600;letter-spacing:-.2px;color:var(--ink);}
+.fnd-desc{font-size:9.5px;color:var(--muted);margin-top:3px;line-height:1.35;font-weight:300;font-style:italic;}
+.fnd-hz{
+  font-family:'DM Mono',monospace;font-size:8px;
+  letter-spacing:.5px;margin-top:5px;
+  opacity:.6;
+}
+
+/* ── KPI OUTCOMES STRIP ── */
+.outcomes{
+  margin-top:14px;
+  display:grid;grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  animation:fadeIn .5s ease .4s both;
+}
+.outcome-card{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:7px;padding:12px 12px 10px;
+  text-align:center;box-shadow:var(--shadow);
+  transition:transform .12s;
+}
+.outcome-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-h);}
+.outcome-val{
+  font-size:26px;font-weight:800;letter-spacing:-1px;
+  line-height:1;margin-bottom:3px;
+}
+.outcome-label{font-size:10px;color:var(--muted);font-style:italic;font-weight:300;line-height:1.3;}
+.outcome-by{
+  font-family:'DM Mono',monospace;font-size:8px;
+  letter-spacing:.5px;color:var(--muted);margin-top:5px;
+  opacity:.6;
+}
+
+/* ── ARCH PRINCIPLES STRIP ── */
+.principles{
+  margin-top:14px;
+  border:1.5px solid var(--border);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow);
+  animation:fadeIn .5s ease .45s both;
+}
+.principles-head{
+  padding:8px 16px;
+  background:var(--bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.principles-head-title{
+  font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);
+}
+.principles-body{
+  display:flex;flex-wrap:wrap;gap:0;
+  background:var(--surface);
+}
+.principle{
+  flex:1 1 200px;
+  padding:10px 14px;border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.principle:last-child{border-right:none;}
+.p-num{
+  font-family:'DM Mono',monospace;font-size:9px;
+  color:var(--muted);letter-spacing:1px;margin-bottom:3px;
+}
+.p-title{font-size:11.5px;font-weight:600;letter-spacing:-.2px;}
+.p-desc{font-size:9.5px;color:var(--muted);margin-top:3px;line-height:1.35;font-weight:300;font-style:italic;}
+
+/* ── FOOTER ── */
+footer{
+  margin-top:36px;
+  display:flex;flex-wrap:wrap;
+  justify-content:space-between;align-items:flex-end;gap:14px;
+  padding-top:20px;border-top:2px solid var(--ink);
+}
+.footer-brand{font-size:14px;font-weight:800;font-style:italic;letter-spacing:-.3px;}
+.footer-note{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;letter-spacing:.5px;}
+.footer-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;}
+.footer-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);opacity:.7;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <div class="eyebrow">Enterprise Architecture · Digital Transformation · Utility Scale</div>
+      <h1>Utility <em>Digital Transformation</em><br>Roadmap</h1>
+      <p class="header-sub">Generation · Transmission · Distribution · Retail — Target State 2025–2030</p>
+    </div>
+    <div class="header-right">
+      <div class="header-meta">
+        FRAMEWORK: ArchiMate 3.1 / TOGAF ADM<br>
+        VIEWPOINT: Roadmap · Motivation<br>
+        STANDARD: IEC 62264 · IEC 61968<br>
+        STATUS: Target Architecture
+      </div>
+      <div class="horizon-pills">
+        <span class="h-pill h1">H1 · Foundation 2025–26</span>
+        <span class="h-pill h2">H2 · Scale 2026–28</span>
+        <span class="h-pill h3">H3 · Innovate 2028–30</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- TIMELINE COLUMN HEADERS -->
+  <div class="timeline-header">
+    <div class="th-domain-col">Domain</div>
+    <div class="th-hz hz1">
+      <span class="th-hz-label">Horizon 1 · Foundation</span>
+      <span class="th-hz-dates">2025 — 2026</span>
+      <span class="th-hz-theme">Digitise, Connect, Stabilise</span>
+    </div>
+    <div class="th-hz hz2">
+      <span class="th-hz-label">Horizon 2 · Scale</span>
+      <span class="th-hz-dates">2026 — 2028</span>
+      <span class="th-hz-theme">Integrate, Automate, Optimise</span>
+    </div>
+    <div class="th-hz hz3">
+      <span class="th-hz-label">Horizon 3 · Innovate</span>
+      <span class="th-hz-dates">2028 — 2030</span>
+      <span class="th-hz-theme">Predict, Adapt, Transform</span>
+    </div>
+  </div>
+
+  <!-- ══ ROW: GENERATION ══ -->
+  <div class="domain-row d-gen">
+    <div class="domain-label">
+      <div class="domain-icon-lg">⚡</div>
+      <div class="domain-name">Generation</div>
+      <div class="domain-kpi">KPIs:<br>Plant Availability ↑<br>Heat Rate ↓<br>Forced Outage Rate ↓</div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Application»</div>
+        <div class="init-title">Plant SCADA Modernisation</div>
+        <div class="init-desc">Replace legacy DCS with IEC 61850-compliant SCADA; historian upgrade to OSIsoft PI</div>
+        <div class="init-tags"><span class="init-tag">OT/IT</span><span class="init-tag">IEC 61850</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Data»</div>
+        <div class="init-title">Sensor & IoT Deployment</div>
+        <div class="init-desc">Vibration, thermal & emissions sensors on turbines, boilers & transformers</div>
+        <div class="init-tags"><span class="init-tag">IoT</span><span class="init-tag">Edge</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Process»</div>
+        <div class="init-title">Digital Work Orders (SAP PM)</div>
+        <div class="init-desc">Paperless maintenance; mobile field workforce integration with SAP EAM</div>
+        <div class="init-tags"><span class="init-tag">SAP PM</span><span class="init-tag">Mobile</span></div>
+      </div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Application»</div>
+        <div class="init-title">Predictive Maintenance Platform</div>
+        <div class="init-desc">ML models on historian data for rotating equipment failure prediction; 30-day horizon</div>
+        <div class="init-tags"><span class="init-tag">ML/AI</span><span class="init-tag">OSIsoft PI</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Technology»</div>
+        <div class="init-title">Digital Twin — Generating Units</div>
+        <div class="init-desc">Physics-informed models of turbines & boilers for performance simulation & what-if</div>
+        <div class="init-tags"><span class="init-tag">Digital Twin</span><span class="init-tag">Azure IoT</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Integration»</div>
+        <div class="init-title">Energy Trading Integration</div>
+        <div class="init-desc">ETRM system integration; real-time dispatch signal to DCS via ESB</div>
+        <div class="init-tags"><span class="init-tag">ETRM</span><span class="init-tag">ESB</span></div>
+      </div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Innovation»</div>
+        <div class="init-title">Autonomous Plant Operations</div>
+        <div class="init-desc">AI-driven closed-loop control; autonomous start/stop & load optimisation</div>
+        <div class="init-tags"><span class="init-tag">AI/ML</span><span class="init-tag">Closed-Loop</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Sustainability»</div>
+        <div class="init-title">Renewable & Hydrogen Integration</div>
+        <div class="init-desc">Co-firing, green hydrogen blending management & carbon accounting platform</div>
+        <div class="init-tags"><span class="init-tag">Green H2</span><span class="init-tag">Carbon</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ROW: TRANSMISSION ══ -->
+  <div class="domain-row d-trn">
+    <div class="domain-label">
+      <div class="domain-icon-lg">🗼</div>
+      <div class="domain-name">Transmission</div>
+      <div class="domain-kpi">KPIs:<br>System Stability ↑<br>Transmission Loss ↓<br>N-1 Security ✓</div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«OT System»</div>
+        <div class="init-title">Wide-Area Monitoring (WAMS/PMU)</div>
+        <div class="init-desc">Deploy PMUs across 500kV & 220kV; C37.118 synchrophasor data to EMS</div>
+        <div class="init-tags"><span class="init-tag">PMU</span><span class="init-tag">C37.118</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Application»</div>
+        <div class="init-title">Advanced EMS Upgrade</div>
+        <div class="init-desc">State estimation, optimal power flow, contingency analysis on GE/ABB EMS</div>
+        <div class="init-tags"><span class="init-tag">EMS</span><span class="init-tag">SCADA</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Cybersecurity»</div>
+        <div class="init-title">NERC CIP Compliance Programme</div>
+        <div class="init-desc">ESP boundaries, electronic access controls, patch management for BES cyber systems</div>
+        <div class="init-tags"><span class="init-tag">NERC CIP</span><span class="init-tag">IEC 62443</span></div>
+      </div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Analytics»</div>
+        <div class="init-title">Dynamic Line Rating (DLR)</div>
+        <div class="init-desc">Real-time ampacity calculation from weather + PMU data; 20% capacity uplift</div>
+        <div class="init-tags"><span class="init-tag">DLR</span><span class="init-tag">ML</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Application»</div>
+        <div class="init-title">Digital Substation (IEC 61850)</div>
+        <div class="init-desc">Process bus migration; merging units; IEC 61850-9-2 sampled values</div>
+        <div class="init-tags"><span class="init-tag">IEC 61850</span><span class="init-tag">MU</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Data»</div>
+        <div class="init-title">Transmission Asset Registry (GIS)</div>
+        <div class="init-desc">CIM-compliant asset register; LiDAR-surveyed tower inventory; Esri ArcGIS</div>
+        <div class="init-tags"><span class="init-tag">GIS</span><span class="init-tag">CIM</span></div>
+      </div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Innovation»</div>
+        <div class="init-title">AI-Driven Grid Stability Control</div>
+        <div class="init-desc">Reinforcement learning for real-time topology switching & voltage control</div>
+        <div class="init-tags"><span class="init-tag">RL/AI</span><span class="init-tag">EMS</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Future»</div>
+        <div class="init-title">HVDC & Grid-Forming Inverters</div>
+        <div class="init-desc">VSC-HVDC integration; grid-forming inverter control for 100% IBR grid</div>
+        <div class="init-tags"><span class="init-tag">HVDC</span><span class="init-tag">IBR</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ROW: DISTRIBUTION ══ -->
+  <div class="domain-row d-dst">
+    <div class="domain-label">
+      <div class="domain-icon-lg">🏘</div>
+      <div class="domain-name">Distribution</div>
+      <div class="domain-kpi">KPIs:<br>SAIDI ↓ SAIFI ↓<br>CAIDI ↓<br>DER Hosting Cap ↑</div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Application»</div>
+        <div class="init-title">Advanced DMS / OMS Deployment</div>
+        <div class="init-desc">Real-time network model; automated fault isolation (FLISR); crew dispatch</div>
+        <div class="init-tags"><span class="init-tag">DMS</span><span class="init-tag">OMS</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«AMI»</div>
+        <div class="init-title">Smart Meter Rollout (AMI Phase 1)</div>
+        <div class="init-desc">Mass deployment of DLMS/COSEM meters; AMI Head-End & MDMS go-live</div>
+        <div class="init-tags"><span class="init-tag">AMI</span><span class="init-tag">MDMS</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Network»</div>
+        <div class="init-title">LV & MV SCADA Extension</div>
+        <div class="init-desc">RTU/FTU deployment at secondary substations; pole-top automation</div>
+        <div class="init-tags"><span class="init-tag">SCADA</span><span class="init-tag">RTU</span></div>
+      </div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Analytics»</div>
+        <div class="init-title">Distribution State Estimation</div>
+        <div class="init-desc">LV observability from AMI + pseudo-measurements; phase identification</div>
+        <div class="init-tags"><span class="init-tag">DSE</span><span class="init-tag">AMI</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«DER»</div>
+        <div class="init-title">DERMS — Flexible DER Orchestration</div>
+        <div class="init-desc">Coordinated dispatch of solar PV, BESS & EV for network constraint management</div>
+        <div class="init-tags"><span class="init-tag">DERMS</span><span class="init-tag">VPP</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Application»</div>
+        <div class="init-title">Mobile Workforce Mgmt (MWM)</div>
+        <div class="init-desc">Real-time crew tracking, digital job cards, GIS-enabled field tablets</div>
+        <div class="init-tags"><span class="init-tag">MWM</span><span class="init-tag">GIS</span></div>
+      </div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Innovation»</div>
+        <div class="init-title">Self-Healing Distribution Grid</div>
+        <div class="init-desc">AI-automated switching; sub-second fault isolation; zero-touch restoration</div>
+        <div class="init-tags"><span class="init-tag">AI</span><span class="init-tag">FLISR</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Future»</div>
+        <div class="init-title">Virtual Power Plant (VPP) Platform</div>
+        <div class="init-desc">Aggregated DER market participation; OpenADR 3.0 demand response</div>
+        <div class="init-tags"><span class="init-tag">VPP</span><span class="init-tag">OpenADR</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ROW: RETAIL ══ -->
+  <div class="domain-row d-ret">
+    <div class="domain-label">
+      <div class="domain-icon-lg">🏪</div>
+      <div class="domain-name">Retail &amp; Customer</div>
+      <div class="domain-kpi">KPIs:<br>CSAT ↑  Churn ↓<br>Self-Service Rate ↑<br>Bad Debt ↓</div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Application»</div>
+        <div class="init-title">SAP IS-U / S4 Utilities Go-Live</div>
+        <div class="init-desc">Core billing, device management & FI-CA on SAP S/4HANA Utilities</div>
+        <div class="init-tags"><span class="init-tag">SAP IS-U</span><span class="init-tag">S/4HANA</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Channel»</div>
+        <div class="init-title">Omni-Channel Customer Portal</div>
+        <div class="init-desc">Web & mobile self-service; consumption history, bill payment & outage reporting</div>
+        <div class="init-tags"><span class="init-tag">CX</span><span class="init-tag">Mobile</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Data»</div>
+        <div class="init-title">CRM Consolidation (SAP C4C)</div>
+        <div class="init-desc">Single customer view across all commodities; case management & SLA tracking</div>
+        <div class="init-tags"><span class="init-tag">SAP CRM</span><span class="init-tag">C4C</span></div>
+      </div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Analytics»</div>
+        <div class="init-title">Dynamic Tariff & Pricing Engine</div>
+        <div class="init-desc">Time-of-use, critical peak & EV tariffs; real-time price signal via AMI</div>
+        <div class="init-tags"><span class="init-tag">ToU</span><span class="init-tag">AMI</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«AI»</div>
+        <div class="init-title">AI Churn Prediction & Retention</div>
+        <div class="init-desc">Propensity-to-churn model; proactive outreach campaigns via CRM</div>
+        <div class="init-tags"><span class="init-tag">ML</span><span class="init-tag">CRM</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Integration»</div>
+        <div class="init-title">Energy Market Integration (MSCONS)</div>
+        <div class="init-desc">Automated settlement messaging; B2B data hub connectivity; switch flows</div>
+        <div class="init-tags"><span class="init-tag">MSCONS</span><span class="init-tag">EDIFACT</span></div>
+      </div>
+    </div>
+    <div class="hz-cell">
+      <div class="init">
+        <div class="init-label">«Innovation»</div>
+        <div class="init-title">Energy-as-a-Service (EaaS) Platform</div>
+        <div class="init-desc">Bundled solar+storage+EV subscription; prosumer marketplace & P2P trading</div>
+        <div class="init-tags"><span class="init-tag">EaaS</span><span class="init-tag">P2P</span></div>
+      </div>
+      <div class="init">
+        <div class="init-label">«Future»</div>
+        <div class="init-title">GenAI Customer Experience</div>
+        <div class="init-desc">LLM-powered virtual assistant; personalised energy advisor; conversational billing</div>
+        <div class="init-tags"><span class="init-tag">GenAI</span><span class="init-tag">LLM</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ENABLING FOUNDATIONS ══ -->
+  <div class="foundations-row">
+    <div class="foundations-head">
+      <span style="font-size:18px">🧱</span>
+      <span class="foundations-head-title">Enabling Foundations — Cross-Cutting Architecture Capabilities</span>
+      <span class="foundations-head-sub">Required across all domains &amp; horizons</span>
+    </div>
+    <div class="foundations-body">
+      <div class="fnd"><div class="fnd-icon">🔀</div><div class="fnd-name">Enterprise Integration Platform</div><div class="fnd-desc">Siemens ESB + Kafka; IEC CIM canonical model; API Gateway</div><div class="fnd-hz">ALL HORIZONS · IEC 61968/61970</div></div>
+      <div class="fnd"><div class="fnd-icon">☁️</div><div class="fnd-name">Hybrid Cloud &amp; Edge</div><div class="fnd-desc">Azure / AWS + on-prem OT DMZ; edge compute at substations</div><div class="fnd-hz">H1 → H3 · IEC 62443</div></div>
+      <div class="fnd"><div class="fnd-icon">🗃</div><div class="fnd-name">Data Platform &amp; Governance</div><div class="fnd-desc">Oracle DB + InfluxDB + Hadoop; master data governance (SAP MDG)</div><div class="fnd-hz">H1 → H3 · DAMA DMBOK</div></div>
+      <div class="fnd"><div class="fnd-icon">🛡</div><div class="fnd-name">OT/IT Cybersecurity (IEC 62443)</div><div class="fnd-desc">Purdue zones; Splunk SIEM; CyberArk PAM; zero-trust device identity</div><div class="fnd-hz">ALL HORIZONS · NERC CIP</div></div>
+      <div class="fnd"><div class="fnd-icon">📊</div><div class="fnd-name">Observability &amp; Analytics</div><div class="fnd-desc">Kibana · Splunk · Grafana; OpenTelemetry; enterprise data catalogue</div><div class="fnd-hz">H1 → H3 · ELK Stack</div></div>
+      <div class="fnd"><div class="fnd-icon">🤖</div><div class="fnd-name">AI/ML Platform (MLOps)</div><div class="fnd-desc">Azure ML / Databricks; feature store; model registry & governance</div><div class="fnd-hz">H2 → H3 · MLflow</div></div>
+      <div class="fnd"><div class="fnd-icon">🌐</div><div class="fnd-name">GIS &amp; Network Digital Twin</div><div class="fnd-desc">Esri ArcGIS; CIM network model; LiDAR asset inventory; spatial analytics</div><div class="fnd-hz">H1 → H3 · IEC CIM</div></div>
+      <div class="fnd"><div class="fnd-icon">📋</div><div class="fnd-name">EA Governance (TOGAF ADM)</div><div class="fnd-desc">Architecture board; principles; standards library; roadmap office</div><div class="fnd-hz">ALL HORIZONS · TOGAF</div></div>
+    </div>
+  </div>
+
+  <!-- ══ OUTCOME KPIs ══ -->
+  <div class="outcomes">
+    <div class="outcome-card">
+      <div class="outcome-val" style="color:var(--gen-c)">40%</div>
+      <div class="outcome-label">Reduction in unplanned generation outages</div>
+      <div class="outcome-by">by H2 · Predictive Maintenance</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-val" style="color:var(--trn-c)">25%</div>
+      <div class="outcome-label">Transmission capacity uplift via Dynamic Line Rating</div>
+      <div class="outcome-by">by H2 · DLR + PMU</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-val" style="color:var(--dst-c)">50%</div>
+      <div class="outcome-label">Reduction in SAIDI (customer outage minutes)</div>
+      <div class="outcome-by">by H3 · Self-Healing Grid</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-val" style="color:var(--ret-c)">70%</div>
+      <div class="outcome-label">Digital self-service adoption rate</div>
+      <div class="outcome-by">by H2 · Omni-Channel CX</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-val" style="color:var(--h3)">Net Zero</div>
+      <div class="outcome-label">Operational carbon target — scope 1 &amp; 2</div>
+      <div class="outcome-by">by H3 · 2030 Commitment</div>
+    </div>
+  </div>
+
+  <!-- ══ ARCHITECTURE PRINCIPLES ══ -->
+  <div class="principles">
+    <div class="principles-head">
+      <span style="font-size:14px">📐</span>
+      <span class="principles-head-title">Guiding Architecture Principles</span>
+    </div>
+    <div class="principles-body">
+      <div class="principle"><div class="p-num">P01</div><div class="p-title">Open Standards First</div><div class="p-desc">IEC CIM, IEC 61850, IEC 62443, TOGAF — vendor lock-in minimised at every layer</div></div>
+      <div class="principle"><div class="p-num">P02</div><div class="p-title">Secure by Design</div><div class="p-desc">Zero-trust architecture; IEC 62443 zone segmentation; security embedded not bolted on</div></div>
+      <div class="principle"><div class="p-num">P03</div><div class="p-title">Data as a Strategic Asset</div><div class="p-desc">Single source of truth; master data governance; data quality SLAs enforced at ingestion</div></div>
+      <div class="principle"><div class="p-num">P04</div><div class="p-title">Cloud-Native Where Appropriate</div><div class="p-desc">Cloud-first for IT systems; on-prem for latency-critical OT; hybrid for integration tier</div></div>
+      <div class="principle"><div class="p-num">P05</div><div class="p-title">API-Led Connectivity</div><div class="p-desc">All integration via managed APIs; ESB as canonical broker; no point-to-point interfaces</div></div>
+      <div class="principle"><div class="p-num">P06</div><div class="p-title">Composable Architecture</div><div class="p-desc">Loosely coupled microservices; domain-driven design; bounded contexts per utility domain</div></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-brand">Utility Digital Transformation Roadmap · 2025–2030</div>
+      <div class="footer-note">Framework: ArchiMate® 3.1 · TOGAF ADM · IEC 62264 · IEC 61968 · IEC 62443</div>
+      <div class="footer-note">Domains: Generation · Transmission · Distribution · Retail</div>
+    </div>
+    <div>
+      <div class="footer-tags">
+        <span class="footer-tag">#EnterpriseArchitecture &nbsp;</span>
+        <span class="footer-tag">#DigitalTransformation &nbsp;</span>
+        <span class="footer-tag">#SmartGrid &nbsp;</span>
+        <span class="footer-tag">#UtilityTech &nbsp;</span>
+        <span class="footer-tag">#TOGAF &nbsp;</span>
+        <span class="footer-tag">#ArchiMate &nbsp;</span>
+        <span class="footer-tag">#EnergyTransition &nbsp;</span>
+        <span class="footer-tag">#IEC61968 &nbsp;</span>
+        <span class="footer-tag">#NetZero</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

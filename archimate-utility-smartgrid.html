@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArchiMate 3.1 – Multi-Utility Smart Grid & IoT Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #05101e;
+  --border: #0d2540;
+  --text:   #c8e0f4;
+  --muted:  #3d6585;
+  --grid:   rgba(0,180,255,0.032);
+
+  --mot-bg:#0a1f38;--mot-bd:#2563a8;--mot-tx:#7bb8f5;
+  --str-bg:#0d2040;--str-bd:#1e4d9a;--str-tx:#90c4ff;
+  --biz-bg:#0a2a1e;--biz-bd:#1a7a50;--biz-tx:#5de0a8;
+  --app-bg:#1a1030;--app-bd:#6b35b3;--app-tx:#c49dff;
+  --tec-bg:#20120a;--tec-bd:#b35a00;--tec-tx:#ffaa55;
+  --phy-bg:#1a0e28;--phy-bd:#8a2090;--phy-tx:#e080ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:36px 36px;
+}
+.page{position:relative;z-index:1;max-width:1380px;margin:0 auto;padding:36px 28px 64px;}
+
+/* HEADER */
+header{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:44px;text-align:center;}
+.badge{font-family:'Share Tech Mono',monospace;font-size:10.5px;letter-spacing:3px;color:#00e0a0;border:1px solid #00e0a0;padding:3px 14px;text-transform:uppercase;opacity:.8;}
+header h1{font-size:clamp(20px,3vw,34px);font-weight:900;letter-spacing:-.5px;background:linear-gradient(110deg,#00d4ff 0%,#00ffa0 55%,#fff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+header .subtitle{font-size:12.5px;color:var(--muted);font-weight:300;letter-spacing:1.2px;}
+.meta-row{display:flex;gap:16px;margin-top:6px;flex-wrap:wrap;justify-content:center;}
+.meta-tag{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);border:1px solid var(--border);padding:2px 10px;border-radius:2px;letter-spacing:1px;}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-bottom:36px;}
+.leg{display:flex;align-items:center;gap:7px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--muted);}
+.leg-sq{width:13px;height:13px;border-radius:2px;border:1.5px solid;flex-shrink:0;}
+
+/* LAYER */
+.layer{border-radius:5px;border:1px solid;margin-bottom:20px;animation:fadeUp .55s ease both;}
+.layer:nth-child(1){animation-delay:.08s}.layer:nth-child(2){animation-delay:.16s}
+.layer:nth-child(3){animation-delay:.24s}.layer:nth-child(4){animation-delay:.32s}
+.layer:nth-child(5){animation-delay:.40s}.layer:nth-child(6){animation-delay:.48s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.l-mot{background:var(--mot-bg);border-color:var(--mot-bd);}
+.l-str{background:var(--str-bg);border-color:var(--str-bd);}
+.l-biz{background:var(--biz-bg);border-color:var(--biz-bd);}
+.l-app{background:var(--app-bg);border-color:var(--app-bd);}
+.l-tec{background:var(--tec-bg);border-color:var(--tec-bd);}
+.l-phy{background:var(--phy-bg);border-color:var(--phy-bd);}
+
+.layer-head{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.05);}
+.layer-label{font-size:10px;font-family:'Share Tech Mono',monospace;letter-spacing:2.5px;text-transform:uppercase;font-weight:600;}
+.l-mot .layer-label{color:var(--mot-tx);}.l-str .layer-label{color:var(--str-tx);}
+.l-biz .layer-label{color:var(--biz-tx);}.l-app .layer-label{color:var(--app-tx);}
+.l-tec .layer-label{color:var(--tec-tx);}.l-phy .layer-label{color:var(--phy-tx);}
+.layer-icon{font-size:18px;}
+.layer-desc{margin-left:auto;font-size:10.5px;color:var(--muted);font-style:italic;font-weight:300;}
+
+/* ELEMENT GRID */
+.el-grid{display:flex;flex-wrap:wrap;gap:10px;padding:14px 16px;}
+
+/* ELEMENT */
+.el{position:relative;border-radius:4px;border:1px solid;padding:10px 12px 10px 36px;min-width:155px;flex:1 1 155px;max-width:255px;transition:transform .18s,box-shadow .18s;cursor:default;}
+.el:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.5);}
+.el-type{position:absolute;top:8px;left:8px;font-size:14px;line-height:1;}
+.el-name{font-size:11.5px;font-weight:700;letter-spacing:.3px;line-height:1.3;}
+.el-stereotype{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;opacity:.6;margin-bottom:3px;text-transform:uppercase;}
+.el-desc{font-size:10px;font-weight:300;opacity:.65;margin-top:4px;line-height:1.4;}
+
+.l-mot .el{border-color:rgba(37,99,168,.5);background:rgba(37,99,168,.12);}
+.l-mot .el-name,.l-mot .el-type{color:var(--mot-tx);}
+.l-str .el{border-color:rgba(30,77,154,.5);background:rgba(30,77,154,.12);}
+.l-str .el-name,.l-str .el-type{color:var(--str-tx);}
+.l-biz .el{border-color:rgba(26,122,80,.5);background:rgba(26,122,80,.12);}
+.l-biz .el-name,.l-biz .el-type{color:var(--biz-tx);}
+.l-app .el{border-color:rgba(107,53,179,.5);background:rgba(107,53,179,.12);}
+.l-app .el-name,.l-app .el-type{color:var(--app-tx);}
+.l-tec .el{border-color:rgba(179,90,0,.5);background:rgba(179,90,0,.12);}
+.l-tec .el-name,.l-tec .el-type{color:var(--tec-tx);}
+.l-phy .el{border-color:rgba(138,32,144,.5);background:rgba(138,32,144,.12);}
+.l-phy .el-name,.l-phy .el-type{color:var(--phy-tx);}
+
+/* SUB-GROUP */
+.sub-group{border-left:3px solid rgba(255,255,255,.1);border-radius:0 4px 4px 0;padding:8px 12px 10px;margin:0 12px 10px;}
+.sub-group-label{font-size:9.5px;font-family:'Share Tech Mono',monospace;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:8px;}
+
+/* RELATIONSHIP LEGEND */
+.rel-legend{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin:28px 0 0;padding:16px;border:1px solid var(--border);border-radius:5px;background:rgba(5,16,30,.6);}
+.rel-legend-title{width:100%;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.rel-item{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--muted);}
+.rel-line{width:36px;height:2px;flex-shrink:0;border-radius:1px;}
+.rel-dashed{border-top:2px dashed;background:transparent!important;height:0;}
+
+/* FOOTER */
+footer{margin-top:40px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:20px;border-top:1px solid var(--border);}
+.footer-left{display:flex;flex-direction:column;gap:5px;}
+.footer-brand{font-size:13px;font-weight:700;color:var(--biz-tx);letter-spacing:1px;}
+.footer-note{font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:.5px;}
+.footer-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;}
+.footer-tag{font-family:'Share Tech Mono',monospace;font-size:10px;color:#00e0a0;opacity:.5;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="badge">ArchiMate 3.1 · Enterprise Architecture</div>
+    <h1>Multi-Utility Smart Grid &amp; IoT Architecture</h1>
+    <p class="subtitle">Reference Architecture · Layered Viewpoint · Open Group Standard</p>
+    <div class="meta-row">
+      <span class="meta-tag">VIEW: Layered</span>
+      <span class="meta-tag">DOMAIN: Utility / Energy</span>
+      <span class="meta-tag">CONCERN: Smart Grid &amp; IoT</span>
+      <span class="meta-tag">STATUS: Target State</span>
+      <span class="meta-tag">STD: IEC 61968 / 61970 / 62443</span>
+    </div>
+  </header>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-sq" style="background:rgba(37,99,168,.3);border-color:#2563a8"></div>Motivation</div>
+    <div class="leg"><div class="leg-sq" style="background:rgba(30,77,154,.3);border-color:#1e4d9a"></div>Strategy</div>
+    <div class="leg"><div class="leg-sq" style="background:rgba(26,122,80,.3);border-color:#1a7a50"></div>Business</div>
+    <div class="leg"><div class="leg-sq" style="background:rgba(107,53,179,.3);border-color:#6b35b3"></div>Application</div>
+    <div class="leg"><div class="leg-sq" style="background:rgba(179,90,0,.3);border-color:#b35a00"></div>Technology</div>
+    <div class="leg"><div class="leg-sq" style="background:rgba(138,32,144,.3);border-color:#8a2090"></div>Physical</div>
+  </div>
+
+  <!-- MOTIVATION -->
+  <div class="layer l-mot">
+    <div class="layer-head">
+      <span class="layer-icon">🎯</span>
+      <span class="layer-label">Motivation Layer</span>
+      <span class="layer-desc">Drivers · Goals · Principles · Requirements</span>
+    </div>
+    <div class="el-grid">
+      <div class="el"><div class="el-type">📌</div><div class="el-stereotype">«Driver»</div><div class="el-name">Grid Decarbonisation</div><div class="el-desc">Net-zero targets &amp; renewable integration mandate</div></div>
+      <div class="el"><div class="el-type">📌</div><div class="el-stereotype">«Driver»</div><div class="el-name">Operational Resilience</div><div class="el-desc">Reduce outage frequency; SAIDI/SAIFI KPI targets</div></div>
+      <div class="el"><div class="el-type">🏆</div><div class="el-stereotype">«Goal»</div><div class="el-name">Real-Time Grid Observability</div><div class="el-desc">End-to-end sensor-to-control-room visibility</div></div>
+      <div class="el"><div class="el-type">🏆</div><div class="el-stereotype">«Goal»</div><div class="el-name">Demand-Side Flexibility</div><div class="el-desc">Dynamic tariffs &amp; demand response programmes</div></div>
+      <div class="el"><div class="el-type">📋</div><div class="el-stereotype">«Principle»</div><div class="el-name">Open Standards First</div><div class="el-desc">IEC CIM, MQTT, IEC 61968 / 61970 / 62443</div></div>
+      <div class="el"><div class="el-type">⚖️</div><div class="el-stereotype">«Requirement»</div><div class="el-name">Regulatory Compliance</div><div class="el-desc">NERC CIP, GDPR, NIS2 Directive, ISO 27001</div></div>
+    </div>
+  </div>
+
+  <!-- STRATEGY -->
+  <div class="layer l-str">
+    <div class="layer-head">
+      <span class="layer-icon">♟</span>
+      <span class="layer-label">Strategy Layer</span>
+      <span class="layer-desc">Capabilities · Value Streams · Resources</span>
+    </div>
+    <div class="el-grid">
+      <div class="el"><div class="el-type">⬡</div><div class="el-stereotype">«Capability»</div><div class="el-name">Advanced Metering Infrastructure</div><div class="el-desc">Smart meter rollout &amp; two-way data exchange</div></div>
+      <div class="el"><div class="el-type">⬡</div><div class="el-stereotype">«Capability»</div><div class="el-name">Predictive Grid Analytics</div><div class="el-desc">ML-driven fault prediction &amp; load forecasting</div></div>
+      <div class="el"><div class="el-type">⬡</div><div class="el-stereotype">«Capability»</div><div class="el-name">DER Orchestration</div><div class="el-desc">Solar PV, BESS &amp; EV flexible dispatch (DERMS)</div></div>
+      <div class="el"><div class="el-type">🌊</div><div class="el-stereotype">«Value Stream»</div><div class="el-name">Meter-to-Cash</div><div class="el-desc">Reading → VEE → billing → collection cycle</div></div>
+      <div class="el"><div class="el-type">🌊</div><div class="el-stereotype">«Value Stream»</div><div class="el-name">Fault-to-Restore</div><div class="el-desc">Detection → isolation → dispatch → restore SLA</div></div>
+      <div class="el"><div class="el-type">🗂</div><div class="el-stereotype">«Resource»</div><div class="el-name">IoT Data Platform</div><div class="el-desc">Centrally managed telemetry &amp; operational data estate</div></div>
+    </div>
+  </div>
+
+  <!-- BUSINESS -->
+  <div class="layer l-biz">
+    <div class="layer-head">
+      <span class="layer-icon">🏢</span>
+      <span class="layer-label">Business Layer</span>
+      <span class="layer-desc">Actors · Roles · Processes · Business Services · Business Objects</span>
+    </div>
+    <div class="sub-group">
+      <div class="sub-group-label">Business Actors &amp; Roles</div>
+      <div class="el-grid" style="padding:0">
+        <div class="el"><div class="el-type">👤</div><div class="el-stereotype">«Business Actor»</div><div class="el-name">Grid Operations Centre</div><div class="el-desc">SCADA operators &amp; shift supervisors</div></div>
+        <div class="el"><div class="el-type">👤</div><div class="el-stereotype">«Business Actor»</div><div class="el-name">Field Engineering Teams</div><div class="el-desc">Installation, maintenance &amp; fault response crews</div></div>
+        <div class="el"><div class="el-type">👤</div><div class="el-stereotype">«Business Actor»</div><div class="el-name">Customer / Prosumer</div><div class="el-desc">Demand response participants &amp; energy retailers</div></div>
+        <div class="el"><div class="el-type">👤</div><div class="el-stereotype">«Business Actor»</div><div class="el-name">Regulatory Body</div><div class="el-desc">Ofgem / FERC / national TSO oversight &amp; audit</div></div>
+      </div>
+    </div>
+    <div class="sub-group">
+      <div class="sub-group-label">Business Processes &amp; Services</div>
+      <div class="el-grid" style="padding:0">
+        <div class="el"><div class="el-type">⚙️</div><div class="el-stereotype">«Business Process»</div><div class="el-name">Grid State Estimation</div><div class="el-desc">Continuous topology &amp; load-flow calculation</div></div>
+        <div class="el"><div class="el-type">⚙️</div><div class="el-stereotype">«Business Process»</div><div class="el-name">Outage Management</div><div class="el-desc">Automated fault isolation &amp; crew dispatch</div></div>
+        <div class="el"><div class="el-type">⚙️</div><div class="el-stereotype">«Business Process»</div><div class="el-name">Demand Response Execution</div><div class="el-desc">Signal broadcast → curtailment → settlement</div></div>
+        <div class="el"><div class="el-type">🔧</div><div class="el-stereotype">«Business Service»</div><div class="el-name">Energy Data Exchange</div><div class="el-desc">B2B metering flows (MSCONS / EDIFACT / DTCC)</div></div>
+        <div class="el"><div class="el-type">🔧</div><div class="el-stereotype">«Business Service»</div><div class="el-name">Customer Self-Service</div><div class="el-desc">Portal: consumption insights, tariffs &amp; flex opt-in</div></div>
+        <div class="el"><div class="el-type">📄</div><div class="el-stereotype">«Business Object»</div><div class="el-name">Grid Asset Register</div><div class="el-desc">Authoritative record of network plant &amp; assets</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION -->
+  <div class="layer l-app">
+    <div class="layer-head">
+      <span class="layer-icon">💻</span>
+      <span class="layer-label">Application Layer</span>
+      <span class="layer-desc">Application Components · Services · Data Objects · Interfaces</span>
+    </div>
+    <div class="sub-group">
+      <div class="sub-group-label">Grid Management Suite</div>
+      <div class="el-grid" style="padding:0">
+        <div class="el"><div class="el-type">🧩</div><div class="el-stereotype">«Application Component»</div><div class="el-name">SCADA / EMS</div><div class="el-desc">Energy Management System; real-time supervisory control</div></div>
+        <div class="el"><div class="el-type">🧩</div><div class="el-stereotype">«Application Component»</div><div class="el-name">OMS — Outage Mgmt</div><div class="el-desc">Network model, fault detection &amp; restoration engine</div></div>
+        <div class="el"><div class="el-type">🧩</div><div class="el-stereotype">«Application Component»</div><div class="el-name">GIS — Network Model</div><div class="el-desc">Geospatial asset &amp; topology repository (Esri / OSGeo)</div></div>
+        <div class="el"><div class="el-type">🧩</div><div class="el-stereotype">«Application Component»</div><div class="el-name">DERMS</div><div class="el-desc">DER Management: solar, BESS &amp; EV flexible dispatch</div></div>
+      </div>
+    </div>
+    <div class="sub-group">
+      <div class="sub-group-label">Metering &amp; Analytics Platform</div>
+      <div class="el-grid" style="padding:0">
+        <div class="el"><div class="el-type">🧩</div><div class="el-stereotype">«Application Component»</div><div class="el-name">MDM — Meter Data Mgmt</div><div class="el-desc">Validation, estimation &amp; editing (VEE); interval data store</div></div>
+        <div class="el"><div class="el-type">🧩</div><div class="el-stereotype">«Application Component»</div><div class="el-name">AMI Head-End System</div><div class="el-desc">Smart meter comms gateway; remote commands &amp; FW updates</div></div>
+        <div class="el"><div class="el-type">🧩</div><div class="el-stereotype">«Application Component»</div><div class="el-name">Grid Analytics &amp; AI Engine</div><div class="el-desc">ML forecasting, anomaly detection, predictive maintenance</div></div>
+        <div class="el"><div class="el-type">🧩</div><div class="el-stereotype">«Application Component»</div><div class="el-name">CRM / Billing System</div><div class="el-desc">Customer accounts, dynamic tariffs &amp; invoicing</div></div>
+      </div>
+    </div>
+    <div class="sub-group">
+      <div class="sub-group-label">Integration &amp; Data Services</div>
+      <div class="el-grid" style="padding:0">
+        <div class="el"><div class="el-type">🔌</div><div class="el-stereotype">«Application Service»</div><div class="el-name">IEC CIM Enterprise Service Bus</div><div class="el-desc">Canonical model; IEC 61968/61970 adapter framework</div></div>
+        <div class="el"><div class="el-type">🗃</div><div class="el-stereotype">«Data Object»</div><div class="el-name">Meter Reading Dataset</div><div class="el-desc">15-min interval time-series; immutable audit log</div></div>
+        <div class="el"><div class="el-type">🗃</div><div class="el-stereotype">«Data Object»</div><div class="el-name">Network Topology Model</div><div class="el-desc">CIM-compliant graph; versioned &amp; change-tracked</div></div>
+        <div class="el"><div class="el-type">🔌</div><div class="el-stereotype">«Application Service»</div><div class="el-name">API Gateway (REST / GraphQL)</div><div class="el-desc">OAuth2 + mTLS; rate-limited third-party access layer</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TECHNOLOGY -->
+  <div class="layer l-tec">
+    <div class="layer-head">
+      <span class="layer-icon">⚙️</span>
+      <span class="layer-label">Technology Layer</span>
+      <span class="layer-desc">Infrastructure · Nodes · Networks · Technology Services</span>
+    </div>
+    <div class="sub-group" style="border-left-color:rgba(179,90,0,.4)">
+      <div class="sub-group-label">Cloud &amp; Compute Infrastructure</div>
+      <div class="el-grid" style="padding:0">
+        <div class="el"><div class="el-type">☁️</div><div class="el-stereotype">«Node»</div><div class="el-name">Hybrid Cloud Platform</div><div class="el-desc">Multi-cloud (AWS / Azure) + on-prem OT DMZ zones</div></div>
+        <div class="el"><div class="el-type">☁️</div><div class="el-stereotype">«Node»</div><div class="el-name">IoT Edge Computing Nodes</div><div class="el-desc">Ruggedised edge gateways at substations &amp; DPs</div></div>
+        <div class="el"><div class="el-type">☁️</div><div class="el-stereotype">«Node»</div><div class="el-name">Time-Series Data Lake</div><div class="el-desc">Apache Kafka + InfluxDB / TimescaleDB cluster</div></div>
+        <div class="el"><div class="el-type">🛡</div><div class="el-stereotype">«Technology Service»</div><div class="el-name">OT/IT Security Zone (DMZ)</div><div class="el-desc">IEC 62443 segmentation; Purdue Model enforced</div></div>
+      </div>
+    </div>
+    <div class="sub-group" style="border-left-color:rgba(179,90,0,.4)">
+      <div class="sub-group-label">Communication Networks</div>
+      <div class="el-grid" style="padding:0">
+        <div class="el"><div class="el-type">📡</div><div class="el-stereotype">«Communication Network»</div><div class="el-name">RF Mesh / LPWAN (AMI)</div><div class="el-desc">LoRaWAN / LTE-M smart meter backhaul</div></div>
+        <div class="el"><div class="el-type">📡</div><div class="el-stereotype">«Communication Network»</div><div class="el-name">MPLS / SD-WAN (OT)</div><div class="el-desc">Private WAN for substations; IEC 61850 GOOSE / SAMV</div></div>
+        <div class="el"><div class="el-type">📡</div><div class="el-stereotype">«Communication Network»</div><div class="el-name">5G Private Network Slice</div><div class="el-desc">URLLC slice for field automation &amp; protection</div></div>
+        <div class="el"><div class="el-type">📦</div><div class="el-stereotype">«Technology Service»</div><div class="el-name">MQTT / AMQP Broker</div><div class="el-desc">Eclipse Mosquitto / RabbitMQ IoT message bus</div></div>
+        <div class="el"><div class="el-type">🔐</div><div class="el-stereotype">«Technology Service»</div><div class="el-name">PKI &amp; Device Identity</div><div class="el-desc">X.509 cert lifecycle; zero-trust device attestation</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHYSICAL -->
+  <div class="layer l-phy">
+    <div class="layer-head">
+      <span class="layer-icon">🔌</span>
+      <span class="layer-label">Physical Layer</span>
+      <span class="layer-desc">Equipment · Facilities · Distribution Networks · Materials</span>
+    </div>
+    <div class="el-grid">
+      <div class="el"><div class="el-type">🏭</div><div class="el-stereotype">«Equipment»</div><div class="el-name">Smart Meters (AMI)</div><div class="el-desc">Bidirectional HAN-enabled; DLMS/COSEM protocol</div></div>
+      <div class="el"><div class="el-type">🏭</div><div class="el-stereotype">«Equipment»</div><div class="el-name">Grid Sensors &amp; RTUs</div><div class="el-desc">PMUs, fault indicators, remote terminal units</div></div>
+      <div class="el"><div class="el-type">🏭</div><div class="el-stereotype">«Equipment»</div><div class="el-name">Intelligent Electronic Devices</div><div class="el-desc">IED protection relays; IEC 61850 Edition 2 compliant</div></div>
+      <div class="el"><div class="el-type">🏭</div><div class="el-stereotype">«Equipment»</div><div class="el-name">Battery Energy Storage (BESS)</div><div class="el-desc">Grid-scale &amp; behind-the-meter distributed units</div></div>
+      <div class="el"><div class="el-type">🏗</div><div class="el-stereotype">«Facility»</div><div class="el-name">Primary Substations</div><div class="el-desc">HV/MV transformation; automated switching &amp; protection</div></div>
+      <div class="el"><div class="el-type">🌐</div><div class="el-stereotype">«Distribution Network»</div><div class="el-name">MV/LV Grid Network</div><div class="el-desc">Cable &amp; overhead line assets; GIS-mapped topology</div></div>
+    </div>
+  </div>
+
+  <!-- RELATIONSHIP LEGEND -->
+  <div class="rel-legend">
+    <div class="rel-legend-title">ArchiMate 3.1 Relationship Types Used</div>
+    <div class="rel-item"><div class="rel-line" style="background:#2563a8"></div><span>Association</span></div>
+    <div class="rel-item"><div class="rel-line rel-dashed" style="border-color:#1a7a50"></div><span>Serving (Realisation)</span></div>
+    <div class="rel-item"><div class="rel-line" style="background:#6b35b3"></div><span>Composition</span></div>
+    <div class="rel-item"><div class="rel-line rel-dashed" style="border-color:#b35a00"></div><span>Triggering</span></div>
+    <div class="rel-item"><div class="rel-line" style="background:#8a2090"></div><span>Realisation</span></div>
+    <div class="rel-item"><div class="rel-line rel-dashed" style="border-color:#00d4ff"></div><span>Flow / Data Flow</span></div>
+    <div class="rel-item"><div class="rel-line" style="background:#ffaa55"></div><span>Assignment</span></div>
+    <div class="rel-item"><div class="rel-line rel-dashed" style="border-color:#e080ff"></div><span>Influence</span></div>
+  </div>
+
+  <footer>
+    <div class="footer-left">
+      <div class="footer-brand">Enterprise Architecture · Smart Grid Reference Model</div>
+      <div class="footer-note">Standard: ArchiMate® 3.1 · The Open Group · Viewpoint: Layered</div>
+      <div class="footer-note">Related Standards: IEC 61968 · IEC 61970 · IEC 62443 · TOGAF ADM · NERC CIP</div>
+    </div>
+    <div class="footer-right">
+      <div class="footer-tags">
+        <span class="footer-tag">#EnterpriseArchitecture</span>
+        <span class="footer-tag">#ArchiMate</span>
+        <span class="footer-tag">#SmartGrid</span>
+        <span class="footer-tag">#IoT</span>
+        <span class="footer-tag">#UtilityTech</span>
+        <span class="footer-tag">#TOGAF</span>
+        <span class="footer-tag">#IEC61968</span>
+        <span class="footer-tag">#DigitalTransformation</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
