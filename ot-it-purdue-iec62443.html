@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OT/IT Reference Architecture — Purdue Model · IEC 62443</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Barlow+Condensed:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0c0e12;
+  --surface:   #121620;
+  --surface2:  #181d28;
+  --ink:       #e2e8f0;
+  --muted:     #4a5568;
+  --rule:      #1e2535;
+
+  /* IEC 62443 zone colours */
+  --z0-c: #c84b00; --z0-bg: rgba(200,75,0,.08);  --z0-bd: rgba(200,75,0,.35);
+  --z1-c: #d4820a; --z1-bg: rgba(212,130,10,.07); --z1-bd: rgba(212,130,10,.3);
+  --z2-c: #b8a200; --z2-bg: rgba(184,162,0,.07);  --z2-bd: rgba(184,162,0,.3);
+  --z3-c: #0a7a4a; --z3-bg: rgba(10,122,74,.07);  --z3-bd: rgba(10,122,74,.3);
+  --z4-c: #0066cc; --z4-bg: rgba(0,102,204,.07);  --z4-bd: rgba(0,102,204,.3);
+  --z5-c: #6b35b3; --z5-bg: rgba(107,53,179,.07); --z5-bd: rgba(107,53,179,.3);
+  --dmz-c:#c41230; --dmz-bg:rgba(196,18,48,.07);  --dmz-bd:rgba(196,18,48,.4);
+
+  --fw:   #ff4444;
+  --conn: rgba(255,255,255,.06);
+  --glow: 0 0 20px rgba(0,102,204,.15);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Barlow Condensed',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* scan-line texture */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.08) 2px,
+    rgba(0,0,0,.08) 4px
+  );
+}
+/* grid */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(0,102,204,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,102,204,.025) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+
+.page{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:36px 28px 64px;}
+
+/* ── HEADER ── */
+header{
+  display:grid;grid-template-columns:1fr auto;
+  gap:20px;align-items:start;
+  margin-bottom:40px;
+  padding-bottom:22px;
+  border-bottom:1px solid var(--rule);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:400;
+  letter-spacing:3px;text-transform:uppercase;color:var(--dmz-c);
+  margin-bottom:10px;
+}
+header h1{
+  font-size:clamp(24px,3.5vw,44px);font-weight:800;
+  line-height:1.0;letter-spacing:-0.5px;
+  color:var(--ink);text-transform:uppercase;
+}
+header h1 span{color:var(--z4-c);}
+.header-sub{
+  margin-top:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--muted);letter-spacing:.5px;line-height:1.7;
+}
+.header-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
+.std-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;}
+.std-badge{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;
+  padding:3px 10px;border:1px solid;text-transform:uppercase;border-radius:2px;
+}
+.badge-red{color:var(--dmz-c);border-color:var(--dmz-c);}
+.badge-blue{color:var(--z4-c);border-color:var(--z4-c);}
+.badge-green{color:var(--z3-c);border-color:var(--z3-c);}
+.badge-amber{color:var(--z1-c);border-color:var(--z1-c);}
+.badge-purple{color:var(--z5-c);border-color:var(--z5-c);}
+
+/* ── ZONE LEGEND ── */
+.zone-legend{
+  display:flex;flex-wrap:wrap;gap:8px;
+  margin-bottom:28px;
+}
+.zl{
+  display:flex;align-items:center;gap:7px;
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;
+  color:var(--muted);padding:4px 10px;
+  border:1px solid var(--rule);border-radius:2px;
+  background:var(--surface);
+}
+.zl-dot{width:10px;height:10px;border-radius:1px;flex-shrink:0;}
+
+/* ── MAIN PURDUE LAYOUT ── */
+.purdue{display:flex;flex-direction:column;gap:0;}
+
+/* ── ZONE BAND ── */
+.zone{
+  border:1px solid;
+  border-radius:6px;
+  margin-bottom:6px;
+  position:relative;
+  animation:zoneIn .5s ease both;
+  overflow:visible;
+}
+.zone:nth-child(1){animation-delay:.05s}
+.zone:nth-child(2){animation-delay:.10s}
+.zone:nth-child(3){animation-delay:.15s}
+.zone:nth-child(4){animation-delay:.20s}
+.zone:nth-child(5){animation-delay:.25s}
+.zone:nth-child(6){animation-delay:.30s}
+.zone:nth-child(7){animation-delay:.35s}
+
+@keyframes zoneIn{from{opacity:0;transform:scaleY(.95)}to{opacity:1;transform:scaleY(1)}}
+
+.z-L5{background:var(--z5-bg);border-color:var(--z5-bd);}
+.z-L4{background:var(--z4-bg);border-color:var(--z4-bd);}
+.z-DMZ{background:var(--dmz-bg);border-color:var(--dmz-bd);}
+.z-L3{background:var(--z3-bg);border-color:var(--z3-bd);}
+.z-L2{background:var(--z2-bg);border-color:var(--z2-bd);}
+.z-L1{background:var(--z1-bg);border-color:var(--z1-bd);}
+.z-L0{background:var(--z0-bg);border-color:var(--z0-bd);}
+
+/* zone header row */
+.zone-head{
+  display:grid;
+  grid-template-columns: 210px 1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:10px 16px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+
+.zone-id-block{display:flex;align-items:center;gap:10px;}
+.zone-level{
+  font-family:'JetBrains Mono',monospace;
+  font-size:22px;font-weight:700;
+  line-height:1;
+  opacity:.9;
+}
+.z-L5 .zone-level{color:var(--z5-c);}
+.z-L4 .zone-level{color:var(--z4-c);}
+.z-DMZ .zone-level{color:var(--dmz-c);}
+.z-L3 .zone-level{color:var(--z3-c);}
+.z-L2 .zone-level{color:var(--z2-c);}
+.z-L1 .zone-level{color:var(--z1-c);}
+.z-L0 .zone-level{color:var(--z0-c);}
+
+.zone-title-block{}
+.zone-name{font-size:14px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+.z-L5 .zone-name{color:var(--z5-c);}
+.z-L4 .zone-name{color:var(--z4-c);}
+.z-DMZ .zone-name{color:var(--dmz-c);}
+.z-L3 .zone-name{color:var(--z3-c);}
+.z-L2 .zone-name{color:var(--z2-c);}
+.z-L1 .zone-name{color:var(--z1-c);}
+.z-L0 .zone-name{color:var(--z0-c);}
+
+.zone-subtitle{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;color:var(--muted);
+  margin-top:2px;letter-spacing:.5px;
+}
+
+.zone-iec{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  padding:3px 10px;border-radius:2px;border:1px solid;
+  letter-spacing:1px;text-transform:uppercase;white-space:nowrap;
+}
+.z-L5 .zone-iec{color:var(--z5-c);border-color:var(--z5-bd);}
+.z-L4 .zone-iec{color:var(--z4-c);border-color:var(--z4-bd);}
+.z-DMZ .zone-iec{color:var(--dmz-c);border-color:var(--dmz-bd);}
+.z-L3 .zone-iec{color:var(--z3-c);border-color:var(--z3-bd);}
+.z-L2 .zone-iec{color:var(--z2-c);border-color:var(--z2-bd);}
+.z-L1 .zone-iec{color:var(--z1-c);border-color:var(--z1-bd);}
+.z-L0 .zone-iec{color:var(--z0-c);border-color:var(--z0-bd);}
+
+/* zone body */
+.zone-body{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px 12px;}
+
+/* ── COMPONENT NODE ── */
+.node{
+  border-radius:4px;border:1px solid;
+  padding:8px 10px 8px 32px;
+  position:relative;
+  flex:1 1 145px;max-width:210px;min-width:140px;
+  transition:transform .15s,box-shadow .15s;
+  cursor:default;
+  background:var(--surface);
+}
+.node:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+.node-icon{position:absolute;top:7px;left:8px;font-size:14px;}
+.node-vendor{
+  font-family:'JetBrains Mono',monospace;font-size:7.5px;
+  letter-spacing:.8px;text-transform:uppercase;opacity:.45;margin-bottom:1px;
+}
+.node-name{font-size:11.5px;font-weight:700;letter-spacing:-.1px;line-height:1.2;}
+.node-desc{font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4;font-weight:300;}
+.node-proto{
+  font-family:'JetBrains Mono',monospace;font-size:7.5px;
+  margin-top:5px;padding:1px 5px;border-radius:2px;border:1px solid;
+  display:inline-block;letter-spacing:.3px;opacity:.75;
+}
+
+/* per-zone node styling */
+.z-L5 .node{border-color:rgba(107,53,179,.3);}
+.z-L5 .node-name{color:#c49dff;}
+.z-L5 .node-icon{color:#c49dff;}
+.z-L5 .node-proto{color:var(--z5-c);border-color:rgba(107,53,179,.4);}
+
+.z-L4 .node{border-color:rgba(0,102,204,.3);}
+.z-L4 .node-name{color:#7ab8ff;}
+.z-L4 .node-icon{color:#7ab8ff;}
+.z-L4 .node-proto{color:var(--z4-c);border-color:rgba(0,102,204,.4);}
+
+.z-DMZ .node{border-color:rgba(196,18,48,.35);}
+.z-DMZ .node-name{color:#ff7088;}
+.z-DMZ .node-icon{color:#ff7088;}
+.z-DMZ .node-proto{color:var(--dmz-c);border-color:rgba(196,18,48,.4);}
+
+.z-L3 .node{border-color:rgba(10,122,74,.3);}
+.z-L3 .node-name{color:#5de0a8;}
+.z-L3 .node-icon{color:#5de0a8;}
+.z-L3 .node-proto{color:var(--z3-c);border-color:rgba(10,122,74,.4);}
+
+.z-L2 .node{border-color:rgba(184,162,0,.3);}
+.z-L2 .node-name{color:#e8d84a;}
+.z-L2 .node-icon{color:#e8d84a;}
+.z-L2 .node-proto{color:var(--z2-c);border-color:rgba(184,162,0,.4);}
+
+.z-L1 .node{border-color:rgba(212,130,10,.3);}
+.z-L1 .node-name{color:#ffc266;}
+.z-L1 .node-icon{color:#ffc266;}
+.z-L1 .node-proto{color:var(--z1-c);border-color:rgba(212,130,10,.4);}
+
+.z-L0 .node{border-color:rgba(200,75,0,.3);}
+.z-L0 .node-name{color:#ff9966;}
+.z-L0 .node-icon{color:#ff9966;}
+.z-L0 .node-proto{color:var(--z0-c);border-color:rgba(200,75,0,.4);}
+
+/* ── FIREWALL SEPARATOR ── */
+.fw-separator{
+  display:flex;align-items:center;gap:0;
+  margin:2px 0;
+  position:relative;
+  z-index:2;
+}
+.fw-line{flex:1;height:1px;background:rgba(255,68,68,.25);}
+.fw-block{
+  display:flex;align-items:center;gap:20px;
+  background:rgba(255,68,68,.1);
+  border:1.5px solid rgba(255,68,68,.5);
+  border-radius:3px;
+  padding:5px 16px;
+  position:relative;
+}
+.fw-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;font-weight:700;
+  color:#ff6666;letter-spacing:1.5px;text-transform:uppercase;
+}
+.fw-detail{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8.5px;color:rgba(255,102,102,.6);
+  letter-spacing:.5px;
+}
+.fw-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#ff4444;
+  box-shadow:0 0 8px #ff4444;
+  animation:pulse-fw 2s ease-in-out infinite;
+  flex-shrink:0;
+}
+@keyframes pulse-fw{
+  0%,100%{opacity:1;box-shadow:0 0 6px #ff4444;}
+  50%{opacity:.5;box-shadow:0 0 14px #ff4444;}
+}
+
+/* ── SUB-ZONE ── */
+.sub-zone{
+  flex:1;min-width:0;
+  border-radius:4px;border:1px dashed;
+  padding:8px 10px;
+}
+.sz-label{
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  letter-spacing:1.5px;text-transform:uppercase;
+  opacity:.45;margin-bottom:7px;
+}
+
+/* ── DATA FLOW TABLE ── */
+.flow-section{margin-top:24px;}
+.section-title{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--rule);}
+
+.flow-table{
+  border:1px solid var(--rule);border-radius:6px;overflow:hidden;
+  background:var(--surface);
+}
+.ft-head{
+  display:grid;grid-template-columns:120px 120px 1fr 1fr 90px;
+  padding:8px 14px;background:rgba(255,255,255,.03);
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:1px;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--rule);
+  gap:8px;
+}
+.ft-row{
+  display:grid;grid-template-columns:120px 120px 1fr 1fr 90px;
+  padding:7px 14px;border-top:1px solid rgba(255,255,255,.03);
+  font-size:10.5px;align-items:center;gap:8px;
+  transition:background .1s;
+}
+.ft-row:hover{background:rgba(255,255,255,.025);}
+.ft-from{font-family:'JetBrains Mono',monospace;font-size:9.5px;}
+.ft-to{font-family:'JetBrains Mono',monospace;font-size:9.5px;}
+.ft-proto{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--z4-c);}
+.ft-desc{font-size:10px;color:var(--muted);}
+.ft-dir{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  text-align:center;
+}
+.dir-uni{color:#5de0a8;}
+.dir-bi{color:#ffc266;}
+.dir-one{color:var(--dmz-c);}
+
+/* ── SECURITY CONTROLS GRID ── */
+.controls-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:8px;margin-top:0;
+}
+.ctrl{
+  background:var(--surface);border:1px solid var(--rule);
+  border-radius:5px;padding:10px 12px;
+  transition:border-color .15s;
+}
+.ctrl:hover{border-color:var(--z4-bd);}
+.ctrl-icon{font-size:18px;margin-bottom:5px;}
+.ctrl-title{font-size:12px;font-weight:700;letter-spacing:-.1px;color:var(--ink);}
+.ctrl-desc{font-size:9.5px;color:var(--muted);margin-top:3px;line-height:1.4;font-weight:300;}
+.ctrl-std{
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  color:var(--z4-c);margin-top:5px;letter-spacing:.5px;opacity:.7;
+}
+
+/* ── FOOTER ── */
+footer{
+  margin-top:32px;display:flex;flex-wrap:wrap;
+  justify-content:space-between;align-items:flex-end;gap:14px;
+  padding-top:18px;border-top:1px solid var(--rule);
+}
+.footer-brand{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);}
+.footer-note{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:.5px;line-height:1.6;}
+.footer-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;align-items:flex-end;}
+.footer-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);opacity:.6;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <div class="eyebrow">// Enterprise Architecture · OT/IT Reference Architecture</div>
+      <h1>Purdue Model — <span>OT/IT Reference</span><br>Architecture</h1>
+      <div class="header-sub">
+        IEC 62443 Security Zones &amp; Conduits &nbsp;|&nbsp; ISA-99 / NERC CIP &nbsp;|&nbsp; Utility — Generation · Transmission · Distribution<br>
+        ArchiMate 3.1 Technology Layer · TOGAF ADM Phase C · Target State Architecture
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="std-badges">
+        <span class="std-badge badge-red">IEC 62443</span>
+        <span class="std-badge badge-blue">ISA-99</span>
+        <span class="std-badge badge-amber">NERC CIP</span>
+        <span class="std-badge badge-green">IEC 61850</span>
+        <span class="std-badge badge-purple">TOGAF ADM</span>
+        <span class="std-badge badge-blue">IEC 61968</span>
+        <span class="std-badge badge-red">NIST CSF</span>
+        <span class="std-badge badge-amber">IEC 61511</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ZONE LEGEND -->
+  <div class="zone-legend">
+    <div class="zl"><div class="zl-dot" style="background:var(--z5-c)"></div>L5 · Enterprise Network (IT)</div>
+    <div class="zl"><div class="zl-dot" style="background:var(--z4-c)"></div>L4 · Site Business Planning (IT)</div>
+    <div class="zl"><div class="zl-dot" style="background:var(--dmz-c)"></div>DMZ · Industrial De-Militarised Zone</div>
+    <div class="zl"><div class="zl-dot" style="background:var(--z3-c)"></div>L3 · Operations / MES (IT-OT Bridge)</div>
+    <div class="zl"><div class="zl-dot" style="background:var(--z2-c)"></div>L2 · Supervisory Control (OT)</div>
+    <div class="zl"><div class="zl-dot" style="background:var(--z1-c)"></div>L1 · Basic Control (OT)</div>
+    <div class="zl"><div class="zl-dot" style="background:var(--z0-c)"></div>L0 · Physical Process (OT)</div>
+    <div class="zl"><div class="zl-dot" style="background:var(--fw);border-radius:50%"></div>🔴 Firewall / Conduit</div>
+  </div>
+
+  <div class="purdue">
+
+    <!-- ══════════ LEVEL 5 — ENTERPRISE IT ══════════ -->
+    <div class="zone z-L5">
+      <div class="zone-head">
+        <div class="zone-id-block">
+          <div class="zone-level">L5</div>
+          <div class="zone-title-block">
+            <div class="zone-name">Enterprise Network</div>
+            <div class="zone-subtitle">Corporate IT · Cloud Services · Remote Users</div>
+          </div>
+        </div>
+        <div></div>
+        <div class="zone-iec">IEC 62443 SL-T: 1 · IT Zone</div>
+      </div>
+      <div class="zone-body">
+        <div class="node"><div class="node-icon">☁️</div><div class="node-vendor">Microsoft / AWS</div><div class="node-name">Hybrid Cloud Platform</div><div class="node-desc">Azure / AWS workloads; IaaS/PaaS for enterprise applications</div><div class="node-proto">HTTPS / TLS 1.3</div></div>
+        <div class="node"><div class="node-icon">🏢</div><div class="node-vendor">SAP</div><div class="node-name">SAP S/4HANA ERP</div><div class="node-desc">Finance, HR, procurement, asset management enterprise suite</div><div class="node-proto">SAP PI / OData</div></div>
+        <div class="node"><div class="node-icon">👥</div><div class="node-vendor">SAP / Salesforce</div><div class="node-name">SAP CRM / C4C</div><div class="node-desc">Customer engagement, billing, demand response portal</div><div class="node-proto">REST / SAML2</div></div>
+        <div class="node"><div class="node-icon">🪪</div><div class="node-vendor">Microsoft</div><div class="node-name">Azure AD (Entra ID)</div><div class="node-desc">Enterprise IAM; SSO, MFA, conditional access, PIM</div><div class="node-proto">OIDC / SAML</div></div>
+        <div class="node"><div class="node-icon">📧</div><div class="node-vendor">Microsoft / Google</div><div class="node-name">Collaboration Suite</div><div class="node-desc">M365, Teams, SharePoint — corporate productivity</div><div class="node-proto">SMTP / HTTPS</div></div>
+        <div class="node"><div class="node-icon">🌐</div><div class="node-vendor">Esri</div><div class="node-name">GIS / ArcGIS Platform</div><div class="node-desc">Geospatial asset registry; network topology; field mobility</div><div class="node-proto">REST / WFS</div></div>
+        <div class="node"><div class="node-icon">🛡</div><div class="node-vendor">CyberArk / Okta</div><div class="node-name">PAM / Zero Trust NAC</div><div class="node-desc">Privileged access vault; just-in-time access; session recording</div><div class="node-proto">PAM API / RADIUS</div></div>
+      </div>
+    </div>
+
+    <!-- FIREWALL L5 → L4 -->
+    <div class="fw-separator">
+      <div class="fw-line"></div>
+      <div class="fw-block">
+        <div class="fw-dot"></div>
+        <div>
+          <div class="fw-label">🔴 NGFW · Perimeter Firewall</div>
+          <div class="fw-detail">Palo Alto / Fortinet · Stateful inspection · IDS/IPS · TLS inspection · Zero Trust policy</div>
+        </div>
+        <div class="fw-dot"></div>
+      </div>
+      <div class="fw-line"></div>
+    </div>
+
+    <!-- ══════════ LEVEL 4 — SITE BUSINESS ══════════ -->
+    <div class="zone z-L4">
+      <div class="zone-head">
+        <div class="zone-id-block">
+          <div class="zone-level">L4</div>
+          <div class="zone-title-block">
+            <div class="zone-name">Site Business Planning &amp; Logistics</div>
+            <div class="zone-subtitle">Plant IT · Engineering Systems · Production Scheduling</div>
+          </div>
+        </div>
+        <div></div>
+        <div class="zone-iec">IEC 62443 SL-T: 2 · IT Zone</div>
+      </div>
+      <div class="zone-body">
+        <div class="node"><div class="node-icon">📊</div><div class="node-vendor">Oracle Utilities</div><div class="node-name">MDMS — Meter Data Mgmt</div><div class="node-desc">VEE, interval data repository, settlement; IEC 61968-9</div><div class="node-proto">IEC 61968-9</div></div>
+        <div class="node"><div class="node-icon">📶</div><div class="node-vendor">Itron / Landis+Gyr</div><div class="node-name">AMI Head-End System</div><div class="node-desc">Smart meter gateway; remote connect/disconnect; OTA firmware</div><div class="node-proto">ANSI C12.22</div></div>
+        <div class="node"><div class="node-icon">🔧</div><div class="node-vendor">SAP</div><div class="node-name">SAP PM / EAM</div><div class="node-desc">Work orders, maintenance scheduling, asset lifecycle management</div><div class="node-proto">SAP RFC / IDoc</div></div>
+        <div class="node"><div class="node-icon">🗄</div><div class="node-vendor">OSIsoft / AVEVA</div><div class="node-name">PI System (Historian)</div><div class="node-desc">Plant data historian; 10-year operational data archive; PI AF</div><div class="node-proto">PI-SDK / REST</div></div>
+        <div class="node"><div class="node-icon">🧠</div><div class="node-vendor">Azure ML / Databricks</div><div class="node-name">AI/ML Analytics Platform</div><div class="node-desc">Predictive maintenance models; load forecasting; anomaly detection</div><div class="node-proto">REST / gRPC</div></div>
+        <div class="node"><div class="node-icon">🔍</div><div class="node-vendor">Elastic / Grafana</div><div class="node-name">Kibana / Grafana Dashboards</div><div class="node-desc">Operational KPI dashboards; meter read rates; plant performance</div><div class="node-proto">Elasticsearch DSL</div></div>
+        <div class="node"><div class="node-icon">📡</div><div class="node-vendor">Siemens</div><div class="node-name">Siemens ESB / Integration</div><div class="node-desc">IEC CIM canonical ESB; IEC 61968/61970 adapter framework</div><div class="node-proto">JMS / IEC 61968</div></div>
+      </div>
+    </div>
+
+    <!-- FIREWALL L4 → DMZ -->
+    <div class="fw-separator">
+      <div class="fw-line"></div>
+      <div class="fw-block">
+        <div class="fw-dot"></div>
+        <div>
+          <div class="fw-label">🔴 DMZ Boundary Firewall (Dual-Homed)</div>
+          <div class="fw-detail">Dual firewall pair · Application-layer proxy · Data diode option · No direct L4↔L3 routing · IEC 62443 conduit control</div>
+        </div>
+        <div class="fw-dot"></div>
+      </div>
+      <div class="fw-line"></div>
+    </div>
+
+    <!-- ══════════ DMZ — INDUSTRIAL DMZ ══════════ -->
+    <div class="zone z-DMZ">
+      <div class="zone-head">
+        <div class="zone-id-block">
+          <div class="zone-level" style="font-size:16px;letter-spacing:-.5px">DMZ</div>
+          <div class="zone-title-block">
+            <div class="zone-name">Industrial De-Militarised Zone (iDMZ)</div>
+            <div class="zone-subtitle">Data Broker · Proxy Services · Controlled IT↔OT Data Exchange</div>
+          </div>
+        </div>
+        <div></div>
+        <div class="zone-iec">IEC 62443 Conduit Zone · No Direct Routing</div>
+      </div>
+      <div class="zone-body">
+        <div class="node"><div class="node-icon">🔀</div><div class="node-vendor">Waterfall / Owl Cyber</div><div class="node-name">Data Diode / Unidirectional Gateway</div><div class="node-desc">Hardware-enforced one-way data transfer; OT→IT only; no TCP/IP return path</div><div class="node-proto">Unidirectional</div></div>
+        <div class="node"><div class="node-icon">🔄</div><div class="node-vendor">Claroty / Nozomi</div><div class="node-name">OT Asset Discovery &amp; Visibility</div><div class="node-desc">Passive network monitoring; asset inventory; anomaly detection in OT traffic</div><div class="node-proto">Passive / SPAN</div></div>
+        <div class="node"><div class="node-icon">📨</div><div class="node-vendor">Apache Kafka</div><div class="node-name">Kafka Event Broker (DMZ)</div><div class="node-desc">Controlled message relay; schema validation; no direct consumer access to OT</div><div class="node-proto">Kafka / Avro</div></div>
+        <div class="node"><div class="node-icon">🛡</div><div class="node-vendor">Splunk</div><div class="node-name">Splunk SIEM (OT collector)</div><div class="node-desc">OT log aggregation; NERC CIP evidence; ICS-specific threat signatures</div><div class="node-proto">Splunk HEC / UF</div></div>
+        <div class="node"><div class="node-icon">🔐</div><div class="node-vendor">Thales / Entrust</div><div class="node-name">OT PKI / Certificate Authority</div><div class="node-desc">Device certificates for IEDs & meters; X.509 issuance; CRL/OCSP</div><div class="node-proto">PKCS#11 / EST</div></div>
+        <div class="node"><div class="node-icon">🖥</div><div class="node-vendor">Vendor-agnostic</div><div class="node-name">Jump Server / Bastion Host</div><div class="node-desc">Privileged remote access gateway to OT; session recording; time-limited MFA access</div><div class="node-proto">SSH / RDP / MFA</div></div>
+        <div class="node"><div class="node-icon">📦</div><div class="node-vendor">Claroty / Dragos</div><div class="node-name">Patch Management Proxy</div><div class="node-desc">Controlled software update distribution to OT systems; vulnerability scanning</div><div class="node-proto">WSUS / SFTP</div></div>
+      </div>
+    </div>
+
+    <!-- FIREWALL DMZ → L3 -->
+    <div class="fw-separator">
+      <div class="fw-line"></div>
+      <div class="fw-block">
+        <div class="fw-dot"></div>
+        <div>
+          <div class="fw-label">🔴 OT Boundary Firewall — IEC 62443 Zone Conduit</div>
+          <div class="fw-detail">Deep packet inspection for ICS protocols · Whitelist-only rules · No inbound IT→OT initiation · Dragos / Claroty ICS IPS</div>
+        </div>
+        <div class="fw-dot"></div>
+      </div>
+      <div class="fw-line"></div>
+    </div>
+
+    <!-- ══════════ LEVEL 3 — OPERATIONS / MES ══════════ -->
+    <div class="zone z-L3">
+      <div class="zone-head">
+        <div class="zone-id-block">
+          <div class="zone-level">L3</div>
+          <div class="zone-title-block">
+            <div class="zone-name">Site Operations &amp; MES / OMS</div>
+            <div class="zone-subtitle">Operations Technology Bridge · SCADA Server Tier · OMS · DMS · EMS</div>
+          </div>
+        </div>
+        <div></div>
+        <div class="zone-iec">IEC 62443 SL-T: 2–3 · OT Zone</div>
+      </div>
+      <div class="zone-body">
+        <div class="node"><div class="node-icon">🖥</div><div class="node-vendor">GE / ABB / Siemens</div><div class="node-name">SCADA / EMS Server</div><div class="node-desc">Energy Management System; state estimation; OPF; contingency analysis</div><div class="node-proto">OPC-UA / DNP3</div></div>
+        <div class="node"><div class="node-icon">⚡</div><div class="node-vendor">Schneider / Oracle</div><div class="node-name">DMS / OMS — Distribution</div><div class="node-desc">Network model; FLISR; fault isolation; crew dispatch; outage management</div><div class="node-proto">IEC 61968-3</div></div>
+        <div class="node"><div class="node-icon">🔋</div><div class="node-vendor">AutoGrid / Enbala</div><div class="node-name">DERMS — DER Management</div><div class="node-desc">Solar PV, BESS, EV orchestration; demand response; VPP dispatch</div><div class="node-proto">OpenADR / REST</div></div>
+        <div class="node"><div class="node-icon">📡</div><div class="node-vendor">OSIsoft PI</div><div class="node-name">Real-Time Data Historian</div><div class="node-desc">Sub-second OT data collection; PI Server; interface to L4 PI System</div><div class="node-proto">PI-API / OPC-DA</div></div>
+        <div class="node"><div class="node-icon">🗺</div><div class="node-vendor">Schneider / Hexagon</div><div class="node-name">Network Model / GIS Interface</div><div class="node-desc">CIM-compliant topology; real-time switching state; GIS synchronisation</div><div class="node-proto">CIM / IEC 61970</div></div>
+        <div class="node"><div class="node-icon">🔁</div><div class="node-vendor">OPC Foundation</div><div class="node-name">OPC-UA Server / Gateway</div><div class="node-desc">Unified architecture protocol gateway; L3↔L2 data broker; certificate auth</div><div class="node-proto">OPC-UA / TLS</div></div>
+        <div class="node"><div class="node-icon">🧱</div><div class="node-vendor">Dragos / Claroty</div><div class="node-name">OT SOC / Threat Detection</div><div class="node-desc">ICS-specific threat signatures; Dragos platform; incident response playbooks</div><div class="node-proto">Passive / IDS</div></div>
+      </div>
+    </div>
+
+    <!-- FIREWALL L3 → L2 -->
+    <div class="fw-separator">
+      <div class="fw-line"></div>
+      <div class="fw-block">
+        <div class="fw-dot"></div>
+        <div>
+          <div class="fw-label">🔴 Control Zone Firewall · IEC 62443 Zone Boundary</div>
+          <div class="fw-detail">Protocol-aware filtering · DNP3 / Modbus / IEC 61850 inspection · Unidirectional where possible · VLAN segmentation</div>
+        </div>
+        <div class="fw-dot"></div>
+      </div>
+      <div class="fw-line"></div>
+    </div>
+
+    <!-- ══════════ LEVEL 2 — SUPERVISORY ══════════ -->
+    <div class="zone z-L2">
+      <div class="zone-head">
+        <div class="zone-id-block">
+          <div class="zone-level">L2</div>
+          <div class="zone-title-block">
+            <div class="zone-name">Supervisory Control</div>
+            <div class="zone-subtitle">HMI · Operator Workstations · Supervisory Controllers · Engineering Stations</div>
+          </div>
+        </div>
+        <div></div>
+        <div class="zone-iec">IEC 62443 SL-T: 3 · Control Zone</div>
+      </div>
+      <div class="zone-body">
+        <div class="node"><div class="node-icon">🖥</div><div class="node-vendor">Siemens / Rockwell</div><div class="node-name">HMI / Operator Workstation</div><div class="node-desc">SCADA HMI; real-time displays; alarm management; operator control</div><div class="node-proto">OPC-DA / Modbus</div></div>
+        <div class="node"><div class="node-icon">🏭</div><div class="node-vendor">ABB / Emerson</div><div class="node-name">DCS — Distributed Control System</div><div class="node-desc">Continuous process control; PID loops; setpoint management for generation</div><div class="node-proto">Fieldbus / PROFIBUS</div></div>
+        <div class="node"><div class="node-icon">🔧</div><div class="node-vendor">Siemens / GE</div><div class="node-name">Engineering Workstation (EWS)</div><div class="node-desc">PLC/IED programming; configuration management; offline simulation</div><div class="node-proto">IEC 61131-3</div></div>
+        <div class="node"><div class="node-icon">🔔</div><div class="node-vendor">Honeywell / ABB</div><div class="node-name">Alarm Management System</div><div class="node-desc">ISA-18.2 compliant alarm rationalisation; suppression; operator guidance</div><div class="node-proto">ISA-18.2 / OPC</div></div>
+        <div class="node"><div class="node-icon">📼</div><div class="node-vendor">OSIsoft</div><div class="node-name">Local Historian (PI Interface)</div><div class="node-desc">Local data buffering; forwards to L3/L4 PI Server; buffered store-and-forward</div><div class="node-proto">PI-API / OPC-DA</div></div>
+        <div class="node"><div class="node-icon">🛡</div><div class="node-vendor">Honeywell / Claroty</div><div class="node-name">Safety Instrumented System (SIS)</div><div class="node-desc">IEC 61511 SIL-2/3; physically isolated from DCS; hardwired safety interlocks</div><div class="node-proto">Hardwired / FF-SIS</div></div>
+      </div>
+    </div>
+
+    <!-- FIREWALL L2 → L1 -->
+    <div class="fw-separator">
+      <div class="fw-line"></div>
+      <div class="fw-block">
+        <div class="fw-dot"></div>
+        <div>
+          <div class="fw-label">🔴 Cell / Area Zone Boundary · IEC 62443 Micro-Segmentation</div>
+          <div class="fw-detail">Managed industrial switch · VLAN isolation per cell · Whitelist MAC/IP · IEC 61850 GOOSE VLAN · No unnecessary protocols</div>
+        </div>
+        <div class="fw-dot"></div>
+      </div>
+      <div class="fw-line"></div>
+    </div>
+
+    <!-- ══════════ LEVEL 1 — BASIC CONTROL ══════════ -->
+    <div class="zone z-L1">
+      <div class="zone-head">
+        <div class="zone-id-block">
+          <div class="zone-level">L1</div>
+          <div class="zone-title-block">
+            <div class="zone-name">Basic Control</div>
+            <div class="zone-subtitle">PLCs · RTUs · IEDs · Protection Relays · Controllers</div>
+          </div>
+        </div>
+        <div></div>
+        <div class="zone-iec">IEC 62443 SL-T: 3–4 · Field Control Zone</div>
+      </div>
+      <div class="zone-body">
+        <div class="node"><div class="node-icon">⚙️</div><div class="node-vendor">Siemens / Rockwell</div><div class="node-name">PLC — Programmable Logic Ctrl</div><div class="node-desc">Discrete &amp; continuous control; IEC 61131-3 ladder / ST; local I/O</div><div class="node-proto">PROFIBUS / EtherNet/IP</div></div>
+        <div class="node"><div class="node-icon">📡</div><div class="node-vendor">Schneider / GE</div><div class="node-name">RTU — Remote Terminal Unit</div><div class="node-desc">Substation telemetry; status &amp; control; SCADA uplink</div><div class="node-proto">DNP3 / IEC 60870-5</div></div>
+        <div class="node"><div class="node-icon">🏭</div><div class="node-vendor">ABB / SEL / GE</div><div class="node-name">IED — Intelligent Electronic Device</div><div class="node-desc">Protection relay; metering; IEC 61850 Ed2; GOOSE / SV messaging</div><div class="node-proto">IEC 61850 GOOSE</div></div>
+        <div class="node"><div class="node-icon">🔌</div><div class="node-vendor">Landis+Gyr / Itron</div><div class="node-name">DCU — Data Concentrator Unit</div><div class="node-desc">AMI field concentrator; aggregates 500–2000 meters; edge preprocessing</div><div class="node-proto">RF Mesh / PLC-BB</div></div>
+        <div class="node"><div class="node-icon">⏱</div><div class="node-vendor">Meinberg / Trimble</div><div class="node-name">GPS Time Synchronisation (IEEE 1588)</div><div class="node-desc">Sub-microsecond PTP; synchrophasor timing; IED &amp; RTU clock discipline</div><div class="node-proto">IEEE 1588 PTP</div></div>
+        <div class="node"><div class="node-icon">🌡</div><div class="node-vendor">Various OEMs</div><div class="node-name">PMU — Phasor Measurement Unit</div><div class="node-desc">Synchrophasor data; C37.118-2; wide-area monitoring; 50/60 samples/sec</div><div class="node-proto">C37.118-2</div></div>
+      </div>
+    </div>
+
+    <!-- PHYSICAL SEPARATION L1 → L0 -->
+    <div class="fw-separator">
+      <div class="fw-line"></div>
+      <div class="fw-block">
+        <div class="fw-dot"></div>
+        <div>
+          <div class="fw-label">⚡ Physical I/O Interface — Hardwired / 4–20mA / HART / Fieldbus</div>
+          <div class="fw-detail">Galvanic isolation · Intrinsic safety barriers · No IP connectivity to L0 · SIS interlocks hardwired · IEC 61511</div>
+        </div>
+        <div class="fw-dot"></div>
+      </div>
+      <div class="fw-line"></div>
+    </div>
+
+    <!-- ══════════ LEVEL 0 — PHYSICAL PROCESS ══════════ -->
+    <div class="zone z-L0">
+      <div class="zone-head">
+        <div class="zone-id-block">
+          <div class="zone-level">L0</div>
+          <div class="zone-title-block">
+            <div class="zone-name">Physical Process — Field Devices</div>
+            <div class="zone-subtitle">Sensors · Actuators · Meters · Field Instruments · Grid Assets</div>
+          </div>
+        </div>
+        <div></div>
+        <div class="zone-iec">IEC 62443 SL-T: 4 · Physical Zone — No IP</div>
+      </div>
+      <div class="zone-body">
+        <div class="node"><div class="node-icon">⚡</div><div class="node-vendor">Landis+Gyr / Itron</div><div class="node-name">Smart Electricity Meters</div><div class="node-desc">Bidirectional; DLMS/COSEM; HAN port; tamper detection; interval recording</div><div class="node-proto">DLMS / M-Bus</div></div>
+        <div class="node"><div class="node-icon">🌡</div><div class="node-vendor">Endress+Hauser</div><div class="node-name">Process Sensors (T/P/F)</div><div class="node-desc">Temperature, pressure, flow — 4–20mA HART; WirelessHART option</div><div class="node-proto">HART / 4-20mA</div></div>
+        <div class="node"><div class="node-icon">⚙️</div><div class="node-vendor">Rotork / Emerson</div><div class="node-name">Actuators &amp; Control Valves</div><div class="node-desc">Motor-operated valves; switchgear; actuator feedback to L1 PLC</div><div class="node-proto">Hardwired / FF</div></div>
+        <div class="node"><div class="node-icon">🏭</div><div class="node-vendor">ABB / Hitachi</div><div class="node-name">Power Transformers &amp; Switchgear</div><div class="node-desc">HV/MV/LV transformation; GIS; automated reclosers; protection CTs/VTs</div><div class="node-proto">Hardwired / IED</div></div>
+        <div class="node"><div class="node-icon">🔋</div><div class="node-vendor">Tesla / BYD / CATL</div><div class="node-name">BESS / EV Charge Points</div><div class="node-desc">Grid-scale storage; bidirectional inverter; EV OCPP 2.0; demand response</div><div class="node-proto">OCPP 2.0 / CTA-2045</div></div>
+        <div class="node"><div class="node-icon">☀️</div><div class="node-vendor">SMA / Huawei</div><div class="node-name">Solar PV Inverters (DER)</div><div class="node-desc">Grid-forming capable; IEEE 1547-2018; reactive power support; curtailment</div><div class="node-proto">SunSpec / Modbus</div></div>
+        <div class="node"><div class="node-icon">💨</div><div class="node-vendor">Vestas / Siemens Gamesa</div><div class="node-name">Wind Turbine Controllers</div><div class="node-desc">Turbine SCADA; yaw/pitch control; park communication; IEC 61400-25</div><div class="node-proto">IEC 61400-25</div></div>
+      </div>
+    </div>
+
+  </div><!-- /purdue -->
+
+  <!-- COMMUNICATION FLOWS TABLE -->
+  <div class="flow-section" style="margin-top:28px;">
+    <div class="section-title">// Key Inter-Zone Communication Flows &amp; Protocols</div>
+    <div class="flow-table">
+      <div class="ft-head">
+        <span>From Zone</span><span>To Zone</span><span>Protocol / Standard</span><span>Data / Purpose</span><span>Direction</span>
+      </div>
+      <div class="ft-row"><span class="ft-from" style="color:#ff9966">L0 Field</span><span class="ft-to" style="color:#ffc266">L1 PLC/RTU</span><span class="ft-proto">HART · 4-20mA · FF</span><span class="ft-desc">Sensor readings, actuator commands, process I/O</span><span class="ft-dir dir-bi">⟷ Bi</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#ffc266">L1 PLC/RTU</span><span class="ft-to" style="color:#e8d84a">L2 SCADA HMI</span><span class="ft-proto">DNP3 · Modbus · IEC 60870-5-101/104</span><span class="ft-desc">Telemetry, alarms, control signals, status</span><span class="ft-desc">⟷ Bi</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#ffc266">L1 IED</span><span class="ft-to" style="color:#e8d84a">L2 DCS</span><span class="ft-proto">IEC 61850 GOOSE · SV · MMS</span><span class="ft-desc">Protection trips, sampled values, bay control</span><span class="ft-dir dir-bi">⟷ Bi</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#e8d84a">L2 Supervisory</span><span class="ft-to" style="color:#5de0a8">L3 SCADA Srv</span><span class="ft-proto">OPC-UA · DNP3 · IEC 60870-5-104</span><span class="ft-desc">Real-time data aggregation, supervisory commands</span><span class="ft-dir dir-bi">⟷ Bi</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#5de0a8">L3 Historian</span><span class="ft-to" style="color:#ff7088">DMZ Diode</span><span class="ft-proto">PI-to-PI · Unidirectional</span><span class="ft-desc">Historical plant data — ONE WAY only to L4</span><span class="ft-dir dir-one">→ Uni</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#ff7088">DMZ Kafka</span><span class="ft-to" style="color:#7ab8ff">L4 MDMS/PI</span><span class="ft-proto">Kafka · Avro · TLS</span><span class="ft-desc">Validated OT event stream relay to IT analytics</span><span class="ft-dir dir-one">→ Uni</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#7ab8ff">L4 Siemens ESB</span><span class="ft-to" style="color:#c49dff">L5 SAP IS-U</span><span class="ft-proto">IEC 61968 · SAP PI/XI · IDoc</span><span class="ft-desc">Meter reads, asset events, work order triggers</span><span class="ft-dir dir-bi">⟷ Bi</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#ff7088">DMZ Jump Srv</span><span class="ft-to" style="color:#5de0a8">L3 OT Systems</span><span class="ft-proto">SSH · RDP · MFA · PAM</span><span class="ft-desc">Privileged maintenance access — time-limited, recorded</span><span class="ft-dir dir-bi">⟷ Controlled</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#5de0a8">L3 PMU</span><span class="ft-to" style="color:#7ab8ff">L4 EMS / PDC</span><span class="ft-proto">C37.118-2 · IEEE 1344</span><span class="ft-desc">Synchrophasor data; wide-area monitoring</span><span class="ft-dir dir-one">→ Uni</span></div>
+      <div class="ft-row"><span class="ft-from" style="color:#ff7088">DMZ SIEM</span><span class="ft-to" style="color:#c49dff">L5 Splunk</span><span class="ft-proto">Splunk HEC · syslog-ng · TLS</span><span class="ft-desc">OT security events, audit logs, NERC CIP evidence</span><span class="ft-dir dir-one">→ Uni</span></div>
+    </div>
+  </div>
+
+  <!-- SECURITY CONTROLS -->
+  <div class="flow-section" style="margin-top:20px;">
+    <div class="section-title">// IEC 62443 Security Controls — Zone &amp; Conduit Requirements</div>
+    <div class="controls-grid">
+      <div class="ctrl"><div class="ctrl-icon">🔐</div><div class="ctrl-title">Identity &amp; Access Management</div><div class="ctrl-desc">Role-based access control (RBAC); MFA for all OT remote access; PAM session recording; time-limited credentials</div><div class="ctrl-std">IEC 62443-3-3 SR 1.1–1.13 · NERC CIP-007</div></div>
+      <div class="ctrl"><div class="ctrl-icon">🧱</div><div class="ctrl-title">Zone &amp; Conduit Segmentation</div><div class="ctrl-desc">Firewall between every zone; no default-permit rules; conduit control with explicit allow-lists; VLAN per cell/area</div><div class="ctrl-std">IEC 62443-3-2 · NERC CIP-005</div></div>
+      <div class="ctrl"><div class="ctrl-icon">🔒</div><div class="ctrl-title">Data Confidentiality &amp; Integrity</div><div class="ctrl-desc">TLS 1.3 for all IT communications; OPC-UA certificate auth; IEC 61850 Ed2 security extensions; signed configs</div><div class="ctrl-std">IEC 62443-3-3 SR 4.1–4.2</div></div>
+      <div class="ctrl"><div class="ctrl-icon">👁</div><div class="ctrl-title">Continuous Monitoring (OT SOC)</div><div class="ctrl-desc">Dragos / Claroty passive OT monitoring; ICS-specific threat signatures; Splunk SIEM; 24×7 SOC alert triage</div><div class="ctrl-std">IEC 62443-2-1 · NERC CIP-007 R4</div></div>
+      <div class="ctrl"><div class="ctrl-icon">🩹</div><div class="ctrl-title">Patch &amp; Vulnerability Mgmt</div><div class="ctrl-desc">Controlled OT patch delivery via DMZ proxy; vendor-tested patches only; compensating controls where unpatched</div><div class="ctrl-std">IEC 62443-2-3 · NERC CIP-007 R2</div></div>
+      <div class="ctrl"><div class="ctrl-icon">🔑</div><div class="ctrl-title">Cryptographic Key Management</div><div class="ctrl-desc">HSM-backed PKI; X.509 device certs for IEDs/meters; automated certificate lifecycle; no shared credentials</div><div class="ctrl-std">IEC 62351 · IEC 62443-3-3 SR 1.8</div></div>
+      <div class="ctrl"><div class="ctrl-icon">🗂</div><div class="ctrl-title">OT Asset Inventory &amp; Config Ctrl</div><div class="ctrl-desc">Automated OT asset discovery (Claroty/Nozomi); configuration baseline; change management; software BOM</div><div class="ctrl-std">IEC 62443-2-1 · NERC CIP-010</div></div>
+      <div class="ctrl"><div class="ctrl-icon">🚨</div><div class="ctrl-title">Incident Response &amp; Recovery</div><div class="ctrl-desc">OT-specific IRP; backup offline media; tested recovery procedures; NERC CIP-009 compliant BCP/DR</div><div class="ctrl-std">IEC 62443-2-1 · NERC CIP-009</div></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-brand">OT/IT Reference Architecture · Purdue Model · IEC 62443</div>
+      <div class="footer-note">Standards: IEC 62443 · ISA-99 · NERC CIP-002–014 · IEC 61850 · IEC 61511 · IEC 62351 · NIST CSF · IEEE 1588</div>
+      <div class="footer-note">Framework: ArchiMate® 3.1 · TOGAF ADM Phase C · Technology Architecture Viewpoint</div>
+    </div>
+    <div>
+      <div class="footer-tags">
+        <span class="footer-tag">#IEC62443 &nbsp;</span>
+        <span class="footer-tag">#OTSecurity &nbsp;</span>
+        <span class="footer-tag">#PurdueModel &nbsp;</span>
+        <span class="footer-tag">#CyberSecurity &nbsp;</span>
+        <span class="footer-tag">#ICSecurity &nbsp;</span>
+        <span class="footer-tag">#NERCCIP &nbsp;</span>
+        <span class="footer-tag">#EnterpriseArchitecture &nbsp;</span>
+        <span class="footer-tag">#SmartGrid &nbsp;</span>
+        <span class="footer-tag">#UtilityTech &nbsp;</span>
+        <span class="footer-tag">#TOGAF &nbsp;</span>
+        <span class="footer-tag">#ArchiMate &nbsp;</span>
+        <span class="footer-tag">#IEC61850</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
