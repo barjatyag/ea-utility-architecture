@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integration Architecture — Animated · Utility & Energy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;500;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:    #04080f;
+  --s1:    #080e1a;
+  --s2:    #0c1424;
+  --bd:    #111e35;
+  --ink:   #c8dff8;
+  --muted: #2d4060;
+  --dim:   #162030;
+
+  --api-c:  #00b8ff;
+  --eda-c:  #ff8800;
+  --eip-c:  #00e896;
+  --hip-c:  #cc44ff;
+  --ot-c:   #ffdd00;
+  --b2b-c:  #ff3388;
+  --db-c:   #8888ff;
+  --sec-c:  #ff4466;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow-x:hidden;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Rajdhani',sans-serif;
+}
+
+/* ── BG CANVAS ── */
+#bgCanvas{
+  position:fixed;inset:0;
+  width:100%;height:100%;
+  pointer-events:none;z-index:0;
+}
+
+.page{
+  position:relative;z-index:1;
+  max-width:1480px;margin:0 auto;
+  padding:28px 22px 56px;
+}
+
+/* ── HEADER ── */
+header{
+  text-align:center;
+  margin-bottom:28px;
+  position:relative;
+}
+.hdr-glow{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:600px;height:120px;
+  background:radial-gradient(ellipse,rgba(0,184,255,.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:3px;
+  color:var(--api-c);text-transform:uppercase;
+  margin-bottom:8px;opacity:.8;
+}
+header h1{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(20px,3.5vw,42px);
+  font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;
+  background:linear-gradient(90deg,
+    var(--api-c) 0%,
+    var(--eip-c) 30%,
+    var(--eda-c) 60%,
+    var(--hip-c) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;background-size:200%;
+  animation:hdrShift 5s linear infinite;
+}
+@keyframes hdrShift{0%{background-position:0%}100%{background-position:200%}}
+.h-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--muted);
+  letter-spacing:1px;margin-top:6px;
+}
+.h-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:8px;}
+.htag{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;
+  padding:2px 9px;border-radius:2px;border:1px solid;
+  letter-spacing:1px;text-transform:uppercase;
+  animation:tagPulse 3s ease-in-out infinite;
+}
+.htag:nth-child(1){color:var(--api-c);border-color:rgba(0,184,255,.4);animation-delay:0s;}
+.htag:nth-child(2){color:var(--eda-c);border-color:rgba(255,136,0,.4);animation-delay:.5s;}
+.htag:nth-child(3){color:var(--eip-c);border-color:rgba(0,232,150,.4);animation-delay:1s;}
+.htag:nth-child(4){color:var(--hip-c);border-color:rgba(204,68,255,.4);animation-delay:1.5s;}
+.htag:nth-child(5){color:var(--ot-c);border-color:rgba(255,221,0,.4);animation-delay:2s;}
+.htag:nth-child(6){color:var(--b2b-c);border-color:rgba(255,51,136,.4);animation-delay:2.5s;}
+@keyframes tagPulse{
+  0%,100%{opacity:.6}50%{opacity:1}
+}
+
+/* ── LAYER LABELS ── */
+.layer-strip{
+  display:flex;gap:10px;margin-bottom:8px;padding-left:32px;
+}
+.ls{
+  flex:1;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:3px 0;border-radius:2px;
+  opacity:.7;
+}
+
+/* ── MAIN DIAGRAM ── */
+.diagram{
+  display:grid;
+  grid-template-columns:24px 1fr;
+  gap:8px;
+}
+
+/* side zone labels */
+.zone-labels{
+  display:flex;flex-direction:column;gap:8px;
+}
+.zl{
+  flex:1;
+  display:flex;align-items:center;justify-content:center;
+  writing-mode:vertical-lr;transform:rotate(180deg);
+  font-family:'JetBrains Mono',monospace;
+  font-size:7.5px;letter-spacing:2px;text-transform:uppercase;
+  border-left:2px solid;border-radius:0 3px 3px 0;
+  opacity:.75;
+}
+.zl-ot  {color:var(--ot-c);border-color:var(--ot-c);}
+.zl-int {color:var(--eip-c);border-color:var(--eip-c);}
+.zl-it  {color:var(--api-c);border-color:var(--api-c);}
+.zl-cld {color:var(--hip-c);border-color:var(--hip-c);}
+
+/* rows */
+.rows{display:flex;flex-direction:column;gap:8px;}
+
+.row{display:flex;gap:8px;}
+
+/* ── CLUSTER CARD ── */
+.cl{
+  border-radius:6px;border:1px solid;
+  padding:10px 11px;
+  flex:1;min-width:0;
+  position:relative;overflow:hidden;
+  animation:clIn .6s cubic-bezier(.16,1,.3,1) both;
+}
+.cl::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.015) 0%,transparent 60%);
+  pointer-events:none;
+}
+
+.cl-ot  {background:rgba(255,221,0,.05);border-color:rgba(255,221,0,.2);}
+.cl-eda {background:rgba(255,136,0,.06);border-color:rgba(255,136,0,.25);}
+.cl-eip {background:rgba(0,232,150,.05);border-color:rgba(0,232,150,.22);}
+.cl-api {background:rgba(0,184,255,.05);border-color:rgba(0,184,255,.22);}
+.cl-hip {background:rgba(204,68,255,.05);border-color:rgba(204,68,255,.22);}
+.cl-it  {background:rgba(0,184,255,.04);border-color:rgba(0,184,255,.18);}
+.cl-db  {background:rgba(136,136,255,.04);border-color:rgba(136,136,255,.18);}
+.cl-sec {background:rgba(255,68,102,.04);border-color:rgba(255,68,102,.18);}
+.cl-b2b {background:rgba(255,51,136,.04);border-color:rgba(255,51,136,.18);}
+.cl-cld {background:rgba(68,221,255,.04);border-color:rgba(68,221,255,.18);}
+.cl-ops {background:rgba(136,136,255,.04);border-color:rgba(136,136,255,.18);}
+
+@keyframes clIn{
+  from{opacity:0;transform:translateY(16px) scale(.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.cl:nth-child(1){animation-delay:.05s}
+.cl:nth-child(2){animation-delay:.12s}
+.cl:nth-child(3){animation-delay:.19s}
+.cl:nth-child(4){animation-delay:.26s}
+.cl:nth-child(5){animation-delay:.33s}
+
+.cl-head{
+  display:flex;align-items:center;gap:7px;
+  margin-bottom:8px;padding-bottom:6px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.cl-icon{font-size:14px;}
+.cl-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+}
+.cl-std{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;
+  font-size:7px;opacity:.4;letter-spacing:.5px;
+}
+.cl-ot  .cl-title{color:var(--ot-c);}
+.cl-eda .cl-title{color:var(--eda-c);}
+.cl-eip .cl-title{color:var(--eip-c);}
+.cl-api .cl-title{color:var(--api-c);}
+.cl-hip .cl-title{color:var(--hip-c);}
+.cl-it  .cl-title{color:var(--api-c);}
+.cl-db  .cl-title{color:var(--db-c);}
+.cl-sec .cl-title{color:var(--sec-c);}
+.cl-b2b .cl-title{color:var(--b2b-c);}
+.cl-cld .cl-title{color:var(--api-c);}
+.cl-ops .cl-title{color:var(--db-c);}
+
+/* ── NODE BLOCK ── */
+.node{
+  border-radius:4px;border:1px solid rgba(255,255,255,.07);
+  padding:5px 8px 5px 26px;
+  position:relative;margin-bottom:5px;
+  background:rgba(255,255,255,.02);
+  transition:all .2s;
+  cursor:default;
+}
+.node:last-child{margin-bottom:0;}
+.node:hover{
+  border-color:rgba(255,255,255,.18);
+  background:rgba(255,255,255,.05);
+  transform:translateX(2px);
+}
+.node-icon{position:absolute;top:5px;left:7px;font-size:12px;line-height:1;}
+.node-name{
+  font-size:10.5px;font-weight:600;letter-spacing:-.1px;
+  line-height:1.2;
+}
+.node-desc{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7.5px;opacity:.45;margin-top:2px;letter-spacing:.2px;
+}
+.node-proto{
+  font-family:'JetBrains Mono',monospace;font-size:7px;
+  display:inline-block;margin-top:3px;
+  padding:1px 5px;border-radius:2px;border:1px solid;
+  opacity:.7;letter-spacing:.3px;
+}
+
+/* per-cluster node colours */
+.cl-ot  .node-name{color:#ffe566;}
+.cl-ot  .node-proto{color:var(--ot-c);border-color:rgba(255,221,0,.3);}
+.cl-eda .node-name{color:#ffaa55;}
+.cl-eda .node-proto{color:var(--eda-c);border-color:rgba(255,136,0,.3);}
+.cl-eip .node-name{color:#55ffbb;}
+.cl-eip .node-proto{color:var(--eip-c);border-color:rgba(0,232,150,.3);}
+.cl-api .node-name{color:#55ccff;}
+.cl-api .node-proto{color:var(--api-c);border-color:rgba(0,184,255,.3);}
+.cl-hip .node-name{color:#cc88ff;}
+.cl-hip .node-proto{color:var(--hip-c);border-color:rgba(204,68,255,.3);}
+.cl-it  .node-name{color:#66bbff;}
+.cl-it  .node-proto{color:var(--api-c);border-color:rgba(0,184,255,.3);}
+.cl-db  .node-name{color:#aaaaff;}
+.cl-db  .node-proto{color:var(--db-c);border-color:rgba(136,136,255,.3);}
+.cl-sec .node-name{color:#ff7799;}
+.cl-sec .node-proto{color:var(--sec-c);border-color:rgba(255,68,102,.3);}
+.cl-b2b .node-name{color:#ff77aa;}
+.cl-b2b .node-proto{color:var(--b2b-c);border-color:rgba(255,51,136,.3);}
+.cl-cld .node-name{color:#77eeff;}
+.cl-cld .node-proto{color:#44ddff;border-color:rgba(68,221,255,.3);}
+.cl-ops .node-name{color:#aaaaff;}
+.cl-ops .node-proto{color:var(--db-c);border-color:rgba(136,136,255,.3);}
+
+/* ── KAFKA TOPIC PILLS (animated) ── */
+.kafka-topics{
+  display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;
+}
+.ktopic{
+  font-family:'JetBrains Mono',monospace;font-size:7.5px;
+  padding:2px 7px;border-radius:2px;
+  background:rgba(255,136,0,.1);border:1px solid rgba(255,136,0,.3);
+  color:var(--eda-c);letter-spacing:.3px;
+  position:relative;overflow:hidden;
+}
+.ktopic::after{
+  content:'';
+  position:absolute;top:0;left:-100%;
+  width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,136,0,.3),transparent);
+  animation:topicScan 3s linear infinite;
+}
+.ktopic:nth-child(2)::after{animation-delay:.4s}
+.ktopic:nth-child(3)::after{animation-delay:.8s}
+.ktopic:nth-child(4)::after{animation-delay:1.2s}
+.ktopic:nth-child(5)::after{animation-delay:1.6s}
+.ktopic:nth-child(6)::after{animation-delay:2.0s}
+.ktopic:nth-child(7)::after{animation-delay:2.4s}
+.ktopic:nth-child(8)::after{animation-delay:2.8s}
+@keyframes topicScan{
+  0%{left:-100%}100%{left:100%}
+}
+
+/* ── ANIMATED STATUS DOTS ── */
+.status-dot{
+  display:inline-block;
+  width:6px;height:6px;border-radius:50%;
+  margin-right:5px;vertical-align:middle;
+  animation:dotPulse 2s ease-in-out infinite;
+}
+.dot-green{background:var(--eip-c);box-shadow:0 0 6px var(--eip-c);}
+.dot-blue{background:var(--api-c);box-shadow:0 0 6px var(--api-c);}
+.dot-orange{background:var(--eda-c);box-shadow:0 0 6px var(--eda-c);}
+.dot-yellow{background:var(--ot-c);box-shadow:0 0 6px var(--ot-c);}
+@keyframes dotPulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.4;transform:scale(.7)}
+}
+
+/* ── FLOW CANVAS ── */
+#flowCanvas{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;
+  z-index:2;
+}
+
+.diagram-wrap{
+  position:relative;
+}
+
+/* ── METRICS BAR ── */
+.metrics-bar{
+  display:grid;grid-template-columns:repeat(6,1fr);
+  gap:8px;margin-top:8px;margin-bottom:10px;
+}
+.metric{
+  background:var(--s1);
+  border:1px solid var(--bd);
+  border-radius:5px;
+  padding:10px 12px;
+  text-align:center;
+  position:relative;overflow:hidden;
+  animation:metricIn .6s ease both;
+}
+.metric::before{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:2px;
+  animation:metricBar 4s ease-in-out infinite;
+}
+.m1::before{background:var(--api-c);animation-delay:0s;}
+.m2::before{background:var(--eda-c);animation-delay:.5s;}
+.m3::before{background:var(--eip-c);animation-delay:1s;}
+.m4::before{background:var(--hip-c);animation-delay:1.5s;}
+.m5::before{background:var(--ot-c);animation-delay:2s;}
+.m6::before{background:var(--b2b-c);animation-delay:2.5s;}
+@keyframes metricBar{
+  0%,100%{transform:scaleX(1);opacity:.8}
+  50%{transform:scaleX(.6);opacity:.4}
+}
+@keyframes metricIn{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.metric:nth-child(1){animation-delay:.1s}
+.metric:nth-child(2){animation-delay:.2s}
+.metric:nth-child(3){animation-delay:.3s}
+.metric:nth-child(4){animation-delay:.4s}
+.metric:nth-child(5){animation-delay:.5s}
+.metric:nth-child(6){animation-delay:.6s}
+
+.metric-val{
+  font-family:'Orbitron',monospace;
+  font-size:18px;font-weight:900;letter-spacing:-.5px;
+  animation:countUp 2s ease both;
+}
+.metric-val.mv-api{color:var(--api-c);}
+.metric-val.mv-eda{color:var(--eda-c);}
+.metric-val.mv-eip{color:var(--eip-c);}
+.metric-val.mv-hip{color:var(--hip-c);}
+.metric-val.mv-ot{color:var(--ot-c);}
+.metric-val.mv-b2b{color:var(--b2b-c);}
+.metric-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;color:var(--muted);
+  letter-spacing:.8px;text-transform:uppercase;margin-top:3px;
+}
+.metric-sub{font-size:8.5px;color:var(--muted);margin-top:2px;font-weight:300;}
+
+/* ── FLOW TABLE ── */
+.flow-section{
+  background:var(--s1);border:1px solid var(--bd);
+  border-radius:6px;overflow:hidden;margin-top:8px;
+}
+.fs-head-row{
+  display:grid;grid-template-columns:160px 160px 100px 1fr 60px;
+  padding:8px 14px;background:rgba(255,255,255,.02);
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  color:var(--muted);letter-spacing:1px;text-transform:uppercase;
+  border-bottom:1px solid var(--bd);gap:8px;
+}
+.fs-row{
+  display:grid;grid-template-columns:160px 160px 100px 1fr 60px;
+  padding:6px 14px;border-top:1px solid rgba(255,255,255,.025);
+  font-size:10px;align-items:center;gap:8px;
+  transition:background .15s;
+  animation:rowIn .4s ease both;
+}
+.fs-row:hover{background:rgba(255,255,255,.03);}
+@keyframes rowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.fs-row:nth-child(2){animation-delay:.05s}
+.fs-row:nth-child(3){animation-delay:.10s}
+.fs-row:nth-child(4){animation-delay:.15s}
+.fs-row:nth-child(5){animation-delay:.20s}
+.fs-row:nth-child(6){animation-delay:.25s}
+.fs-row:nth-child(7){animation-delay:.30s}
+.fs-row:nth-child(8){animation-delay:.35s}
+.fs-row:nth-child(9){animation-delay:.40s}
+.fs-row:nth-child(10){animation-delay:.45s}
+
+.fs-from{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;}
+.fs-to{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;}
+.fs-proto{
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  padding:1px 6px;border-radius:2px;border:1px solid;text-align:center;
+}
+.p-api{color:var(--api-c);border-color:rgba(0,184,255,.3);background:rgba(0,184,255,.07);}
+.p-eda{color:var(--eda-c);border-color:rgba(255,136,0,.3);background:rgba(255,136,0,.07);}
+.p-eip{color:var(--eip-c);border-color:rgba(0,232,150,.3);background:rgba(0,232,150,.07);}
+.p-hip{color:var(--hip-c);border-color:rgba(204,68,255,.3);background:rgba(204,68,255,.07);}
+.p-ot{color:var(--ot-c);border-color:rgba(255,221,0,.3);background:rgba(255,221,0,.07);}
+.fs-desc{font-size:9.5px;color:var(--muted);}
+.fs-dir{font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;}
+
+/* ── FOOTER ── */
+footer{
+  margin-top:20px;display:flex;flex-wrap:wrap;
+  justify-content:space-between;align-items:flex-end;gap:12px;
+  padding-top:14px;border-top:1px solid var(--bd);
+}
+.footer-brand{
+  font-family:'Orbitron',sans-serif;font-size:13px;
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--api-c);
+}
+.footer-note{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.3px;line-height:1.7;
+}
+.footer-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;}
+.footer-tag{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);opacity:.55;}
+</style>
+</head>
+<body>
+
+<!-- Background particle canvas -->
+<canvas id="bgCanvas"></canvas>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="hdr-glow"></div>
+    <div class="eyebrow">// Animated Block Architecture · Integration Architect · Utility & Energy</div>
+    <h1>Integration Architecture</h1>
+    <div class="h-sub">API · Event-Driven · Enterprise Integration Patterns · Hybrid Platform · IEC 61968/61970</div>
+    <div class="h-tags">
+      <span class="htag">OpenAPI 3.1</span>
+      <span class="htag">AsyncAPI 2.x</span>
+      <span class="htag">IEC CIM</span>
+      <span class="htag">Hybrid iPaaS</span>
+      <span class="htag">IEC 61968</span>
+      <span class="htag">MSCONS</span>
+    </div>
+  </header>
+
+  <!-- METRICS BAR -->
+  <div class="metrics-bar">
+    <div class="metric m1">
+      <div class="metric-val mv-api" id="m1">8</div>
+      <div class="metric-label">API Endpoints</div>
+      <div class="metric-sub">OpenAPI 3.1</div>
+    </div>
+    <div class="metric m2">
+      <div class="metric-val mv-eda" id="m2">500K</div>
+      <div class="metric-label">Events / sec</div>
+      <div class="metric-sub">Kafka Backbone</div>
+    </div>
+    <div class="metric m3">
+      <div class="metric-val mv-eip" id="m3">8</div>
+      <div class="metric-label">Kafka Topics</div>
+      <div class="metric-sub">Avro schema</div>
+    </div>
+    <div class="metric m4">
+      <div class="metric-val mv-hip" id="m4">4</div>
+      <div class="metric-label">Deploy Zones</div>
+      <div class="metric-sub">Cloud+OT+B2B</div>
+    </div>
+    <div class="metric m5">
+      <div class="metric-val mv-ot" id="m5">4</div>
+      <div class="metric-label">Int. Patterns</div>
+      <div class="metric-sub">API+EDA+EIP+HIP</div>
+    </div>
+    <div class="metric m6">
+      <div class="metric-val mv-b2b" id="m6">IEC</div>
+      <div class="metric-label">Standards</div>
+      <div class="metric-sub">61968·61970·CIM</div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div class="diagram-wrap">
+    <canvas id="flowCanvas"></canvas>
+
+    <div class="diagram">
+      <div class="zone-labels">
+        <div class="zl zl-ot" style="flex:1.2">Field / OT</div>
+        <div class="zl zl-int" style="flex:1.4">Integration</div>
+        <div class="zl zl-it" style="flex:1.2">IT Systems</div>
+        <div class="zl zl-cld" style="flex:1">Cloud / B2B</div>
+      </div>
+
+      <div class="rows">
+
+        <!-- ═══ ROW 1: FIELD / OT ═══ -->
+        <div class="row" id="row-field">
+          <!-- Smart Meters -->
+          <div class="cl cl-ot" id="cl-meters" style="flex:1.1">
+            <div class="cl-head">
+              <span class="cl-icon">⚡</span>
+              <span class="cl-title">Smart Meters / AMI</span>
+              <span class="cl-std">IEC 62056 · DLMS</span>
+            </div>
+            <div class="node"><div class="node-icon">⚡</div><div class="node-name"><span class="status-dot dot-yellow"></span>Electricity Meters (Landis+Gyr)</div><div class="node-desc">Bidirectional · HAN port · tamper detect</div><div class="node-proto">DLMS/COSEM</div></div>
+            <div class="node"><div class="node-icon">💧</div><div class="node-name"><span class="status-dot dot-yellow"></span>Gas / Water Meters (Kamstrup)</div><div class="node-desc">NB-IoT / LoRa · M-Bus · wM-Bus</div><div class="node-proto">M-Bus · NB-IoT</div></div>
+            <div class="node"><div class="node-icon">📡</div><div class="node-name"><span class="status-dot dot-yellow"></span>Data Concentrator Unit (DCU)</div><div class="node-desc">Itron · 500 meter aggregation · edge</div><div class="node-proto">RF Mesh · PLC-BB</div></div>
+            <div class="node"><div class="node-icon">🔋</div><div class="node-name"><span class="status-dot dot-yellow"></span>BESS / EV / Solar DER</div><div class="node-desc">Grid-scale · bidirectional · DR capable</div><div class="node-proto">OCPP 2.0 · SunSpec</div></div>
+          </div>
+
+          <!-- OT SCADA -->
+          <div class="cl cl-ot" id="cl-scada" style="flex:1.1">
+            <div class="cl-head">
+              <span class="cl-icon">🏭</span>
+              <span class="cl-title">OT / SCADA</span>
+              <span class="cl-std">IEC 61850 · DNP3</span>
+            </div>
+            <div class="node"><div class="node-icon">🖥</div><div class="node-name"><span class="status-dot dot-yellow"></span>SCADA / EMS (GE / ABB)</div><div class="node-desc">State estimation · OPF · N-1 analysis</div><div class="node-proto">IEC 60870-5-104</div></div>
+            <div class="node"><div class="node-icon">⚙️</div><div class="node-name"><span class="status-dot dot-yellow"></span>IED / Protection Relays</div><div class="node-desc">ABB / SEL · zone protection · trips</div><div class="node-proto">IEC 61850 GOOSE</div></div>
+            <div class="node"><div class="node-icon">📼</div><div class="node-name"><span class="status-dot dot-yellow"></span>OT Historian (OSIsoft PI)</div><div class="node-desc">Sub-second tags · PI AF · 10yr archive</div><div class="node-proto">OPC-DA / PI-API</div></div>
+            <div class="node"><div class="node-icon">📡</div><div class="node-name"><span class="status-dot dot-yellow"></span>PMU / RTU / PLC</div><div class="node-desc">C37.118 · Modbus · DNP3 · Siemens S7</div><div class="node-proto">DNP3 · Modbus</div></div>
+          </div>
+
+          <!-- MQTT / Edge -->
+          <div class="cl cl-eda" id="cl-mqtt" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">📡</span>
+              <span class="cl-title">MQTT / IoT Edge</span>
+              <span class="cl-std">MQTT 5.0 · Edge</span>
+            </div>
+            <div class="node"><div class="node-icon">📡</div><div class="node-name"><span class="status-dot dot-orange"></span>MQTT Broker (HiveMQ)</div><div class="node-desc">QoS 0/1/2 · TLS · X.509 auth</div><div class="node-proto">MQTT 5.0</div></div>
+            <div class="node"><div class="node-icon">🔁</div><div class="node-name"><span class="status-dot dot-orange"></span>OPC-UA PubSub Bridge</div><div class="node-desc">OPC-UA → Kafka relay · DMZ aware</div><div class="node-proto">OPC-UA PubSub</div></div>
+            <div class="node"><div class="node-icon">🔌</div><div class="node-name"><span class="status-dot dot-orange"></span>Protocol Adapters</div><div class="node-desc">DNP3 / IEC 61850 / DLMS → REST/JSON</div><div class="node-proto">Multi-protocol</div></div>
+            <div class="node"><div class="node-icon">📨</div><div class="node-name"><span class="status-dot dot-orange"></span>Edge Kafka (Local Buffer)</div><div class="node-desc">Disconnected ops · store-and-forward</div><div class="node-proto">Kafka 3.x</div></div>
+          </div>
+        </div>
+
+        <!-- ═══ ROW 2: INTEGRATION LAYER ═══ -->
+        <div class="row" id="row-int">
+          <!-- Siemens ESB -->
+          <div class="cl cl-eip" id="cl-esb" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">🔀</span>
+              <span class="cl-title">Siemens ESB · IEC CIM</span>
+              <span class="cl-std">IEC 61968/61970</span>
+            </div>
+            <div class="node"><div class="node-icon">🔀</div><div class="node-name"><span class="status-dot dot-green"></span>SI ESB Core (CIM Canonical)</div><div class="node-desc">Message routing · transformation · CIM</div><div class="node-proto">SOAP · JMS · IEC CIM</div></div>
+            <div class="node"><div class="node-icon">🔌</div><div class="node-name"><span class="status-dot dot-green"></span>IEC 61968-9 Adapters</div><div class="node-desc">GetReadings · RequestReads · ChangeMeter</div><div class="node-proto">IEC 61968-9</div></div>
+            <div class="node"><div class="node-icon">🔁</div><div class="node-name"><span class="status-dot dot-green"></span>Apache Camel Routes</div><div class="node-desc">300+ EIP patterns · MSCONS gen · DSL</div><div class="node-proto">Camel DSL · EIP</div></div>
+            <div class="node"><div class="node-icon">🔗</div><div class="node-name"><span class="status-dot dot-green"></span>SAP PI / PO Adapter</div><div class="node-desc">IDoc · RFC · BAPI · XI message mapping</div><div class="node-proto">SAP XI / IDoc</div></div>
+            <div class="node"><div class="node-icon">🧱</div><div class="node-name"><span class="status-dot dot-green"></span>Circuit Breaker / DLQ</div><div class="node-desc">Resilience4j · JMS dead-letter queue</div><div class="node-proto">Resilience4j</div></div>
+          </div>
+
+          <!-- KAFKA BACKBONE -->
+          <div class="cl cl-eda" id="cl-kafka" style="flex:1.4">
+            <div class="cl-head">
+              <span class="cl-icon">📨</span>
+              <span class="cl-title">Kafka Event Backbone</span>
+              <span class="cl-std">AsyncAPI 2.x · Avro</span>
+            </div>
+            <div class="node"><div class="node-icon">📨</div><div class="node-name"><span class="status-dot dot-orange"></span>Apache Kafka Cluster (Confluent)</div><div class="node-desc">500K msgs/sec · exactly-once · 90d retention</div><div class="node-proto">Kafka 3.x · Avro</div></div>
+            <div class="node"><div class="node-icon">📐</div><div class="node-name"><span class="status-dot dot-orange"></span>Schema Registry (Confluent)</div><div class="node-desc">Avro / Protobuf · backward compat</div><div class="node-proto">Avro · Protobuf</div></div>
+            <div class="node"><div class="node-icon">🔌</div><div class="node-name"><span class="status-dot dot-orange"></span>Kafka Connect / Debezium CDC</div><div class="node-desc">Oracle CDC · JDBC · S3 · Elastic sinks</div><div class="node-proto">CDC · JDBC · S3</div></div>
+            <div class="node"><div class="node-icon">🌊</div><div class="node-name"><span class="status-dot dot-orange"></span>ksqlDB / Kafka Streams</div><div class="node-desc">VEE window agg · theft detect · stateful</div><div class="node-proto">KSQL · Streams</div></div>
+            <div class="kafka-topics">
+              <span class="ktopic">meter.readings.interval</span>
+              <span class="ktopic">meter.events.alarms</span>
+              <span class="ktopic">grid.events.faults</span>
+              <span class="ktopic">der.dispatch.commands</span>
+              <span class="ktopic">billing.meter.validated</span>
+              <span class="ktopic">ot.telemetry.scada</span>
+              <span class="ktopic">grid.topology.changes</span>
+              <span class="ktopic">audit.security.events</span>
+            </div>
+          </div>
+
+          <!-- API GATEWAY -->
+          <div class="cl cl-api" id="cl-apigw" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">🌐</span>
+              <span class="cl-title">API Gateway</span>
+              <span class="cl-std">OpenAPI 3.1 · OAuth2</span>
+            </div>
+            <div class="node"><div class="node-icon">🌐</div><div class="node-name"><span class="status-dot dot-blue"></span>Apigee / Kong Gateway</div><div class="node-desc">Rate-limit · quota · dev portal · analytics</div><div class="node-proto">REST · GraphQL</div></div>
+            <div class="node"><div class="node-icon">🔐</div><div class="node-name"><span class="status-dot dot-blue"></span>OAuth2 / OIDC Server</div><div class="node-desc">Azure AD · client creds · PKCE · scopes</div><div class="node-proto">OAuth2 · OIDC</div></div>
+            <div class="node"><div class="node-icon">🔒</div><div class="node-name"><span class="status-dot dot-blue"></span>mTLS Termination</div><div class="node-desc">Mutual TLS · SPIFFE · cert auth</div><div class="node-proto">mTLS · X.509</div></div>
+            <div class="node"><div class="node-icon">🔄</div><div class="node-name"><span class="status-dot dot-blue"></span>API Mediation (MuleSoft)</div><div class="node-desc">SOAP→REST · IEC 61968 transform</div><div class="node-proto">MuleSoft · XSLT</div></div>
+            <div class="node"><div class="node-icon">📊</div><div class="node-name"><span class="status-dot dot-blue"></span>GraphQL / gRPC Gateway</div><div class="node-desc">CIM asset queries · analytics · IEC 61970</div><div class="node-proto">GraphQL · gRPC</div></div>
+          </div>
+
+          <!-- HIP -->
+          <div class="cl cl-hip" id="cl-hip" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">☁️</span>
+              <span class="cl-title">Hybrid iPaaS</span>
+              <span class="cl-std">MuleSoft · Azure</span>
+            </div>
+            <div class="node"><div class="node-icon">🔀</div><div class="node-name"><span class="status-dot dot-yellow" style="background:var(--hip-c);box-shadow:0 0 6px var(--hip-c)"></span>MuleSoft Anypoint</div><div class="node-desc">CloudHub · RTF on-prem · API-led</div><div class="node-proto">Mule 4 · RTF</div></div>
+            <div class="node"><div class="node-icon">☁️</div><div class="node-name"><span class="status-dot dot-yellow" style="background:var(--hip-c);box-shadow:0 0 6px var(--hip-c)"></span>Azure Integration Services</div><div class="node-desc">API Mgmt · Logic Apps · Service Bus</div><div class="node-proto">Azure · ARM</div></div>
+            <div class="node"><div class="node-icon">📡</div><div class="node-name"><span class="status-dot dot-yellow" style="background:var(--hip-c);box-shadow:0 0 6px var(--hip-c)"></span>OpenADR 3.0 VTN</div><div class="node-desc">DR signals · DERMS · EV charging</div><div class="node-proto">OpenADR 3.0</div></div>
+            <div class="node"><div class="node-icon">🤝</div><div class="node-name"><span class="status-dot dot-yellow" style="background:var(--hip-c);box-shadow:0 0 6px var(--hip-c)"></span>B2B Gateway (AS2 / SFTP)</div><div class="node-desc">MSCONS · EDIFACT · market messaging</div><div class="node-proto">AS2 · MSCONS</div></div>
+            <div class="node"><div class="node-icon">👁</div><div class="node-name"><span class="status-dot dot-yellow" style="background:var(--hip-c);box-shadow:0 0 6px var(--hip-c)"></span>Integration Observability</div><div class="node-desc">OpenTelemetry · Kibana · Grafana</div><div class="node-proto">OTel · Prometheus</div></div>
+          </div>
+        </div>
+
+        <!-- ═══ ROW 3: IT APPLICATIONS ═══ -->
+        <div class="row" id="row-it">
+          <!-- MDMS -->
+          <div class="cl cl-it" id="cl-mdms" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">📊</span>
+              <span class="cl-title">MDMS / Metering</span>
+              <span class="cl-std">IEC 61968-9</span>
+            </div>
+            <div class="node"><div class="node-icon">📊</div><div class="node-name"><span class="status-dot dot-blue"></span>Oracle Utilities MDMS</div><div class="node-desc">VEE · IDR · settlement · IEC 61968-9</div><div class="node-proto">IEC 61968-9</div></div>
+            <div class="node"><div class="node-icon">📶</div><div class="node-name"><span class="status-dot dot-blue"></span>AMI Head-End System</div><div class="node-desc">Itron/L+G · remote cmd · OTA FW</div><div class="node-proto">ANSI C12.22</div></div>
+            <div class="node"><div class="node-icon">🗄</div><div class="node-name"><span class="status-dot dot-blue"></span>Oracle DB 19c / Exadata</div><div class="node-desc">TDE · RAC HA · GoldenGate replication</div><div class="node-proto">Oracle Net · JDBC</div></div>
+            <div class="node"><div class="node-icon">📈</div><div class="node-name"><span class="status-dot dot-blue"></span>InfluxDB Time-Series</div><div class="node-desc">15-min intervals · Flux · downsampling</div><div class="node-proto">InfluxQL · Flux</div></div>
+          </div>
+
+          <!-- SAP -->
+          <div class="cl cl-eip" id="cl-sap" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">💡</span>
+              <span class="cl-title">SAP Utility Suite</span>
+              <span class="cl-std">SAP IS-U · S/4HANA</span>
+            </div>
+            <div class="node"><div class="node-icon">💡</div><div class="node-name"><span class="status-dot dot-green"></span>SAP IS-U / S4 Utilities</div><div class="node-desc">Device mgmt · billing · FI-CA</div><div class="node-proto">SAP PI · IDoc</div></div>
+            <div class="node"><div class="node-icon">💰</div><div class="node-name"><span class="status-dot dot-green"></span>SAP Convergent Invoicing</div><div class="node-desc">Multi-commodity · dynamic tariffs</div><div class="node-proto">SAP CI · FI-CA</div></div>
+            <div class="node"><div class="node-icon">🔧</div><div class="node-name"><span class="status-dot dot-green"></span>SAP PM / EAM</div><div class="node-desc">Asset lifecycle · work orders · mobile</div><div class="node-proto">SAP PM · RFC</div></div>
+            <div class="node"><div class="node-icon">📦</div><div class="node-name"><span class="status-dot dot-green"></span>SAP MDG (Master Data Gov)</div><div class="node-desc">Golden record · device · customer master</div><div class="node-proto">SAP MDG · OData</div></div>
+          </div>
+
+          <!-- Grid Ops -->
+          <div class="cl cl-ops" id="cl-gridops" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">⚡</span>
+              <span class="cl-title">Grid Operations</span>
+              <span class="cl-std">IEC 61968-3/4</span>
+            </div>
+            <div class="node"><div class="node-icon">⚡</div><div class="node-name"><span class="status-dot dot-blue"></span>DMS / OMS (Schneider)</div><div class="node-desc">FLISR · network model · crew dispatch</div><div class="node-proto">IEC 61968-3</div></div>
+            <div class="node"><div class="node-icon">🔋</div><div class="node-name"><span class="status-dot dot-blue"></span>DERMS / VPP</div><div class="node-desc">DER flex dispatch · OpenADR 3.0</div><div class="node-proto">OpenADR · REST</div></div>
+            <div class="node"><div class="node-icon">🗺</div><div class="node-name"><span class="status-dot dot-blue"></span>GIS Network Model (Esri)</div><div class="node-desc">CIM topology · ArcGIS · LiDAR assets</div><div class="node-proto">IEC 61970 CIM</div></div>
+            <div class="node"><div class="node-icon">📱</div><div class="node-name"><span class="status-dot dot-blue"></span>Mobile Workforce (MWM)</div><div class="node-desc">Field tablets · GIS-enabled · job cards</div><div class="node-proto">REST · Mobile</div></div>
+          </div>
+
+          <!-- Observability + Security -->
+          <div class="cl cl-sec" id="cl-sec" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">🛡</span>
+              <span class="cl-title">Observability / Security</span>
+              <span class="cl-std">Splunk · Kibana · ZT</span>
+            </div>
+            <div class="node"><div class="node-icon">🔍</div><div class="node-name"><span class="status-dot dot-green" style="background:var(--db-c);box-shadow:0 0 6px var(--db-c)"></span>Kibana / Elasticsearch</div><div class="node-desc">AMI KPIs · exception · audit logs</div><div class="node-proto">ELK · Beats</div></div>
+            <div class="node"><div class="node-icon">🛡</div><div class="node-name"><span class="status-dot dot-green" style="background:var(--sec-c);box-shadow:0 0 6px var(--sec-c)"></span>Splunk SIEM / SOAR</div><div class="node-desc">Security events · NERC CIP evidence</div><div class="node-proto">Splunk HEC</div></div>
+            <div class="node"><div class="node-icon">🪪</div><div class="node-name"><span class="status-dot dot-green" style="background:var(--sec-c);box-shadow:0 0 6px var(--sec-c)"></span>Azure AD + CyberArk PAM</div><div class="node-desc">SSO · MFA · JIT access · vault</div><div class="node-proto">OIDC · PAM API</div></div>
+            <div class="node"><div class="node-icon">🔐</div><div class="node-name"><span class="status-dot dot-green" style="background:var(--sec-c);box-shadow:0 0 6px var(--sec-c)"></span>HashiCorp Vault / PKI</div><div class="node-desc">Dynamic secrets · OT X.509 certs · HSM</div><div class="node-proto">Vault API · mTLS</div></div>
+          </div>
+        </div>
+
+        <!-- ═══ ROW 4: CLOUD / B2B ═══ -->
+        <div class="row" id="row-cloud">
+          <!-- Azure Cloud -->
+          <div class="cl cl-cld" id="cl-azure" style="flex:1.2">
+            <div class="cl-head">
+              <span class="cl-icon">☁️</span>
+              <span class="cl-title">Cloud Integration (Azure)</span>
+              <span class="cl-std">Azure · Confluent</span>
+            </div>
+            <div class="node"><div class="node-icon">☁️</div><div class="node-name"><span class="status-dot dot-blue" style="background:#44ddff;box-shadow:0 0 6px #44ddff"></span>Azure API Management</div><div class="node-desc">Cloud API gateway · developer portal</div><div class="node-proto">Azure APIM</div></div>
+            <div class="node"><div class="node-icon">📨</div><div class="node-name"><span class="status-dot dot-blue" style="background:#44ddff;box-shadow:0 0 6px #44ddff"></span>Confluent Cloud Kafka</div><div class="node-desc">Managed Kafka SaaS · Schema Registry</div><div class="node-proto">Kafka · Avro</div></div>
+            <div class="node"><div class="node-icon">⚡</div><div class="node-name"><span class="status-dot dot-blue" style="background:#44ddff;box-shadow:0 0 6px #44ddff"></span>Azure Event Grid / Service Bus</div><div class="node-desc">CloudEvents · pub-sub · DLQ</div><div class="node-proto">CloudEvents</div></div>
+            <div class="node"><div class="node-icon">🗃</div><div class="node-name"><span class="status-dot dot-blue" style="background:#44ddff;box-shadow:0 0 6px #44ddff"></span>Data Lake (Databricks / Hadoop)</div><div class="node-desc">ML feature store · ODI ETL · archive</div><div class="node-proto">HDFS · Delta</div></div>
+          </div>
+
+          <!-- B2B Market -->
+          <div class="cl cl-b2b" id="cl-b2b" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">🤝</span>
+              <span class="cl-title">B2B / Energy Market</span>
+              <span class="cl-std">MSCONS · IEC 62325</span>
+            </div>
+            <div class="node"><div class="node-icon">🤝</div><div class="node-name"><span class="status-dot dot-yellow" style="background:var(--b2b-c);box-shadow:0 0 6px var(--b2b-c)"></span>B2B Gateway (AS2 / SFTP)</div><div class="node-desc">Market hub · secure transfer</div><div class="node-proto">AS2 · SFTP</div></div>
+            <div class="node"><div class="node-icon">📄</div><div class="node-name"><span class="status-dot dot-yellow" style="background:var(--b2b-c);box-shadow:0 0 6px var(--b2b-c)"></span>MSCONS / EDIFACT</div><div class="node-desc">Settlement · switch flows · DSO/TSO</div><div class="node-proto">MSCONS · EDIFACT</div></div>
+            <div class="node"><div class="node-icon">🌐</div><div class="node-name"><span class="status-dot dot-yellow" style="background:var(--b2b-c);box-shadow:0 0 6px var(--b2b-c)"></span>IEC 62325 / API Ecosystem</div><div class="node-desc">Balancing market · 3rd party APIs</div><div class="node-proto">IEC 62325 · REST</div></div>
+          </div>
+
+          <!-- AI/ML Analytics -->
+          <div class="cl cl-db" id="cl-ml" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">🧠</span>
+              <span class="cl-title">AI / ML Analytics</span>
+              <span class="cl-std">Azure ML · Databricks</span>
+            </div>
+            <div class="node"><div class="node-icon">🧠</div><div class="node-name"><span class="status-dot dot-green" style="background:var(--db-c);box-shadow:0 0 6px var(--db-c)"></span>Azure ML / Databricks</div><div class="node-desc">Predictive maintenance · load forecast</div><div class="node-proto">MLflow · REST</div></div>
+            <div class="node"><div class="node-icon">📉</div><div class="node-name"><span class="status-dot dot-green" style="background:var(--db-c);box-shadow:0 0 6px var(--db-c)"></span>Grafana + Prometheus</div><div class="node-desc">Real-time metrics · SLA alerting</div><div class="node-proto">PromQL · OTel</div></div>
+            <div class="node"><div class="node-icon">🔍</div><div class="node-name"><span class="status-dot dot-green" style="background:var(--db-c);box-shadow:0 0 6px var(--db-c)"></span>Oracle ODI ETL</div><div class="node-desc">MDMS → Data Lake nightly pipelines</div><div class="node-proto">ODI · JDBC</div></div>
+          </div>
+
+          <!-- CRM / Customer -->
+          <div class="cl cl-cld" id="cl-crm" style="flex:1">
+            <div class="cl-head">
+              <span class="cl-icon">👥</span>
+              <span class="cl-title">Customer / CRM</span>
+              <span class="cl-std">SAP C4C · REST</span>
+            </div>
+            <div class="node"><div class="node-icon">👥</div><div class="node-name"><span class="status-dot dot-blue" style="background:#44ddff;box-shadow:0 0 6px #44ddff"></span>SAP CRM / C4C</div><div class="node-desc">Customer 360 · complaints · MiMo</div><div class="node-proto">OData · REST</div></div>
+            <div class="node"><div class="node-icon">🌐</div><div class="node-name"><span class="status-dot dot-blue" style="background:#44ddff;box-shadow:0 0 6px #44ddff"></span>Customer Self-Service Portal</div><div class="node-desc">Consumption · billing · DR opt-in</div><div class="node-proto">REST · OAuth2</div></div>
+            <div class="node"><div class="node-icon">📱</div><div class="node-name"><span class="status-dot dot-blue" style="background:#44ddff;box-shadow:0 0 6px #44ddff"></span>Notification Service</div><div class="node-desc">Outage alerts · bill ready · SMS/email</div><div class="node-proto">FCM · SMTP · SMS</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY FLOWS TABLE -->
+  <div class="flow-section">
+    <div class="fs-head-row">
+      <span>Source</span><span>Target</span><span>Protocol</span><span>Integration Flow</span><span>Pattern</span>
+    </div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--ot-c)">Smart Meters</span><span class="fs-to" style="color:var(--eda-c)">MQTT Broker</span><span class="fs-proto p-ot">DLMS/MQTT</span><div class="fs-desc">Interval reads, alarms, tamper — QoS 2 · TLS · X.509</div><span class="fs-dir" style="color:var(--ot-c)">↑ EDA</span></div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--eda-c)">MQTT / Edge Kafka</span><span class="fs-to" style="color:var(--eda-c)">Kafka Backbone</span><span class="fs-proto p-eda">Kafka Connect</span><div class="fs-desc">meter.readings.interval · Avro schema · 48 partitions</div><span class="fs-dir" style="color:var(--eda-c)">↑ EDA</span></div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--ot-c)">OT Historian (PI)</span><span class="fs-to" style="color:var(--eip-c)">Siemens ESB</span><span class="fs-proto p-eip">OPC-UA · JMS</span><div class="fs-desc">Telemetry → CIM canonical transform → MDMS / DMS routing</div><span class="fs-dir" style="color:var(--eip-c)">↑ EIP</span></div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--eip-c)">Siemens ESB</span><span class="fs-to" style="color:var(--eip-c)">SAP IS-U</span><span class="fs-proto p-eip">SAP PI/IDoc</span><div class="fs-desc">Daily meter reads → billing document → FI-CA posting</div><span class="fs-dir" style="color:var(--eip-c)">↔ EIP</span></div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--eda-c)">ksqlDB</span><span class="fs-to" style="color:var(--api-c)">MDMS Oracle</span><span class="fs-proto p-eda">Kafka → JDBC</span><div class="fs-desc">billing.meter.validated → Oracle Utilities IDR write via sink</div><span class="fs-dir" style="color:var(--eda-c)">↑ EDA</span></div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--api-c)">API Gateway</span><span class="fs-to" style="color:var(--api-c)">Customer Portal</span><span class="fs-proto p-api">REST / OAuth2</span><div class="fs-desc">Meter Reads API · IEC 61968-9 · JWT scoped · OpenAPI 3.1</div><span class="fs-dir" style="color:var(--api-c)">↔ API</span></div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--hip-c)">MuleSoft / Azure</span><span class="fs-to" style="color:var(--b2b-c)">B2B Gateway</span><span class="fs-proto p-hip">AS2 / SFTP</span><div class="fs-desc">MSCONS settlement · EDIFACT switch flows → TSO/DSO/retailers</div><span class="fs-dir" style="color:var(--hip-c)">↔ HIP</span></div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--eda-c)">Kafka S3 Sink</span><span class="fs-to" style="color:var(--api-c)">Data Lake</span><span class="fs-proto p-eda">Kafka Connect</span><div class="fs-desc">Historical archive → Databricks ML feature store → ODI ETL</div><span class="fs-dir" style="color:var(--eda-c)">↑ EDA</span></div>
+    <div class="fs-row"><span class="fs-from" style="color:var(--api-c)">All Systems</span><span class="fs-to" style="color:var(--db-c)">Kibana / Splunk</span><span class="fs-proto p-api">OpenTelemetry</span><div class="fs-desc">Traces · metrics · logs → ELK · NERC CIP audit evidence</div><span class="fs-dir" style="color:var(--api-c)">↑ OBS</span></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-brand">Integration Architecture · Utility &amp; Energy</div>
+      <div class="footer-note">Standards: IEC 61968 · IEC 61970 · IEC 62325 · OpenAPI 3.1 · AsyncAPI 2.x · MQTT 5.0 · OpenADR 3.0 · MSCONS · EDIFACT</div>
+      <div class="footer-note">Tools: Apache Kafka · Siemens ESB · MuleSoft · SAP PI/PO · Apigee · IBM MQ · Apache Camel · Azure Integration Services</div>
+    </div>
+    <div>
+      <div class="footer-tags">
+        <span class="footer-tag">#IntegrationArchitecture &nbsp;</span>
+        <span class="footer-tag">#ApacheKafka &nbsp;</span>
+        <span class="footer-tag">#EventDrivenArchitecture &nbsp;</span>
+        <span class="footer-tag">#IEC61968 &nbsp;</span>
+        <span class="footer-tag">#MuleSoft &nbsp;</span>
+        <span class="footer-tag">#AsyncAPI &nbsp;</span>
+        <span class="footer-tag">#EnterpriseArchitecture &nbsp;</span>
+        <span class="footer-tag">#UtilityTech &nbsp;</span>
+        <span class="footer-tag">#SmartGrid</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   BACKGROUND PARTICLE CANVAS
+══════════════════════════════════════════ */
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+
+function resizeBg() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+}
+resizeBg();
+window.addEventListener('resize', resizeBg);
+
+const particles = Array.from({length: 80}, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  r: Math.random() * 1.5 + 0.3,
+  vx: (Math.random() - 0.5) * 0.3,
+  vy: (Math.random() - 0.5) * 0.3,
+  color: ['#00b8ff','#ff8800','#00e896','#cc44ff','#ffdd00'][Math.floor(Math.random()*5)],
+  alpha: Math.random() * 0.4 + 0.1
+}));
+
+// Grid lines
+const gridLines = [];
+for (let x = 0; x < 3000; x += 44) gridLines.push({type:'v', pos:x});
+for (let y = 0; y < 3000; y += 44) gridLines.push({type:'h', pos:y});
+
+function animateBg() {
+  bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+  // Grid
+  bgCtx.strokeStyle = 'rgba(0,184,255,0.018)';
+  bgCtx.lineWidth = 0.5;
+  gridLines.forEach(l => {
+    bgCtx.beginPath();
+    if (l.type === 'v') { bgCtx.moveTo(l.pos,0); bgCtx.lineTo(l.pos, bgCanvas.height); }
+    else { bgCtx.moveTo(0,l.pos); bgCtx.lineTo(bgCanvas.width, l.pos); }
+    bgCtx.stroke();
+  });
+
+  // Particles
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = bgCanvas.width;
+    if (p.x > bgCanvas.width) p.x = 0;
+    if (p.y < 0) p.y = bgCanvas.height;
+    if (p.y > bgCanvas.height) p.y = 0;
+
+    bgCtx.beginPath();
+    bgCtx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    bgCtx.fillStyle = p.color;
+    bgCtx.globalAlpha = p.alpha;
+    bgCtx.fill();
+    bgCtx.globalAlpha = 1;
+  });
+
+  requestAnimationFrame(animateBg);
+}
+animateBg();
+
+/* ══════════════════════════════════════════
+   DATA FLOW PARTICLES BETWEEN CLUSTERS
+══════════════════════════════════════════ */
+const flowCanvas = document.getElementById('flowCanvas');
+const fCtx = flowCanvas.getContext('2d');
+
+function resizeFlow() {
+  const wrap = document.querySelector('.diagram-wrap');
+  if (!wrap) return;
+  const rect = wrap.getBoundingClientRect();
+  flowCanvas.width = wrap.offsetWidth;
+  flowCanvas.height = wrap.offsetHeight;
+  flowCanvas.style.width = wrap.offsetWidth + 'px';
+  flowCanvas.style.height = wrap.offsetHeight + 'px';
+}
+
+// Flow particle streams between clusters
+const streams = [];
+let streamColors = {
+  api:  '#00b8ff',
+  eda:  '#ff8800',
+  eip:  '#00e896',
+  hip:  '#cc44ff',
+  ot:   '#ffdd00',
+  b2b:  '#ff3388',
+  db:   '#8888ff',
+};
+
+function getClusterCenter(id) {
+  const el = document.getElementById(id);
+  const wrap = document.querySelector('.diagram-wrap');
+  if (!el || !wrap) return null;
+  const er = el.getBoundingClientRect();
+  const wr = wrap.getBoundingClientRect();
+  return {
+    x: er.left - wr.left + er.width/2,
+    y: er.top  - wr.top  + er.height/2,
+    w: er.width,
+    h: er.height
+  };
+}
+
+// Define flow connections
+const connections = [
+  // OT → Integration
+  {from:'cl-meters', to:'cl-mqtt',   color:'#ffdd00', label:'DLMS→MQTT'},
+  {from:'cl-scada',  to:'cl-esb',    color:'#00e896', label:'OPC-UA'},
+  {from:'cl-mqtt',   to:'cl-kafka',  color:'#ff8800', label:'Kafka Connect'},
+  {from:'cl-scada',  to:'cl-kafka',  color:'#ff8800', label:'OPC-UA PubSub'},
+  // Integration → IT
+  {from:'cl-esb',    to:'cl-sap',    color:'#00e896', label:'SAP IDoc'},
+  {from:'cl-esb',    to:'cl-mdms',   color:'#00e896', label:'IEC 61968-9'},
+  {from:'cl-kafka',  to:'cl-mdms',   color:'#ff8800', label:'Kafka Sink'},
+  {from:'cl-kafka',  to:'cl-gridops',color:'#ff8800', label:'grid.events'},
+  {from:'cl-apigw',  to:'cl-mdms',   color:'#00b8ff', label:'REST'},
+  {from:'cl-apigw',  to:'cl-gridops',color:'#00b8ff', label:'GraphQL'},
+  {from:'cl-hip',    to:'cl-b2b',    color:'#cc44ff', label:'AS2/MSCONS'},
+  // IT → Cloud
+  {from:'cl-mdms',   to:'cl-azure',  color:'#44ddff', label:'Kafka→Lake'},
+  {from:'cl-sap',    to:'cl-crm',    color:'#44ddff', label:'OData'},
+  {from:'cl-gridops',to:'cl-b2b',    color:'#ff3388', label:'EDIFACT'},
+  {from:'cl-sec',    to:'cl-azure',  color:'#8888ff', label:'OTel'},
+  {from:'cl-kafka',  to:'cl-ml',     color:'#8888ff', label:'S3 Sink'},
+];
+
+// Each stream holds multiple particles
+const streamParticles = connections.map(c => ({
+  ...c,
+  particles: Array.from({length: 3}, (_, i) => ({t: i/3, speed: 0.003 + Math.random()*0.003}))
+}));
+
+function animateFlows() {
+  if (!flowCanvas.width) { resizeFlow(); }
+  fCtx.clearRect(0, 0, flowCanvas.width, flowCanvas.height);
+
+  streamParticles.forEach(stream => {
+    const from = getClusterCenter(stream.from);
+    const to   = getClusterCenter(stream.to);
+    if (!from || !to) return;
+
+    // Draw faint connector line
+    fCtx.beginPath();
+    fCtx.moveTo(from.x, from.y);
+    fCtx.lineTo(to.x, to.y);
+    fCtx.strokeStyle = stream.color;
+    fCtx.globalAlpha = 0.06;
+    fCtx.lineWidth = 1;
+    fCtx.setLineDash([4, 6]);
+    fCtx.stroke();
+    fCtx.setLineDash([]);
+    fCtx.globalAlpha = 1;
+
+    // Animate particles along path
+    stream.particles.forEach(p => {
+      p.t += p.speed;
+      if (p.t > 1) p.t = 0;
+
+      const x = from.x + (to.x - from.x) * p.t;
+      const y = from.y + (to.y - from.y) * p.t;
+
+      // Glow
+      const grd = fCtx.createRadialGradient(x, y, 0, x, y, 6);
+      grd.addColorStop(0, stream.color);
+      grd.addColorStop(1, 'transparent');
+      fCtx.beginPath();
+      fCtx.arc(x, y, 6, 0, Math.PI*2);
+      fCtx.fillStyle = grd;
+      fCtx.globalAlpha = 0.3;
+      fCtx.fill();
+
+      // Core dot
+      fCtx.beginPath();
+      fCtx.arc(x, y, 2.5, 0, Math.PI*2);
+      fCtx.fillStyle = stream.color;
+      fCtx.globalAlpha = 0.9;
+      fCtx.fill();
+      fCtx.globalAlpha = 1;
+    });
+  });
+
+  requestAnimationFrame(animateFlows);
+}
+
+// Start after layout
+setTimeout(() => {
+  resizeFlow();
+  animateFlows();
+}, 500);
+
+window.addEventListener('resize', () => {
+  resizeBg();
+  resizeFlow();
+});
+
+/* ══════════════════════════════════════════
+   ANIMATED METRIC COUNTERS
+══════════════════════════════════════════ */
+const metricTargets = [
+  {id:'m1', from:0,   to:8,    suffix:'',  float:false},
+  {id:'m2', from:0,   to:500,  suffix:'K', float:false},
+  {id:'m3', from:0,   to:8,    suffix:'',  float:false},
+  {id:'m4', from:0,   to:4,    suffix:'',  float:false},
+  {id:'m5', from:0,   to:4,    suffix:'',  float:false},
+];
+
+metricTargets.forEach(m => {
+  const el = document.getElementById(m.id);
+  if (!el) return;
+  let start = null;
+  const dur = 2000;
+  function step(ts) {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const val = Math.round(m.from + (m.to - m.from) * eased);
+    el.textContent = val + m.suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+});
+
+/* ══════════════════════════════════════════
+   NODE STAGGER ANIMATION ON LOAD
+══════════════════════════════════════════ */
+document.querySelectorAll('.node').forEach((n, i) => {
+  n.style.opacity = '0';
+  n.style.transform = 'translateX(-8px)';
+  n.style.transition = `opacity .3s ease ${i*0.03}s, transform .3s ease ${i*0.03}s`;
+  setTimeout(() => {
+    n.style.opacity = '1';
+    n.style.transform = 'translateX(0)';
+  }, 200 + i * 30);
+});
+</script>
+</body>
+</html>

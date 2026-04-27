@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integration Architecture Block Diagram — Utility & Energy</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #080c14;
+  --s1:     #0e1520;
+  --s2:     #131c2e;
+  --border: #1a2540;
+  --ink:    #d8e4f8;
+  --muted:  #3d5070;
+  --dim:    #1e2d48;
+
+  --api-c:  #00aaff; --api-bg: rgba(0,170,255,.08); --api-glow: rgba(0,170,255,.3);
+  --eda-c:  #ff7c00; --eda-bg: rgba(255,124,0,.08);  --eda-glow: rgba(255,124,0,.3);
+  --eip-c:  #00cc88; --eip-bg: rgba(0,204,136,.08);  --eip-glow: rgba(0,204,136,.3);
+  --hip-c:  #cc55ff; --hip-bg: rgba(204,85,255,.08); --hip-glow: rgba(204,85,255,.3);
+
+  --ot-c:   #ffcc00; --ot-bg:  rgba(255,204,0,.07);
+  --b2b-c:  #ff4488; --b2b-bg: rgba(255,68,136,.07);
+  --cloud-c:#44ddff; --cloud-bg:rgba(68,221,255,.07);
+  --db-c:   #aaaaff; --db-bg:  rgba(170,170,255,.07);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Barlow',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(0,170,255,.012) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,170,255,.012) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+
+.page{position:relative;z-index:1;max-width:1460px;margin:0 auto;padding:32px 24px 60px;}
+
+/* ── HEADER ── */
+header{
+  display:flex;flex-direction:column;align-items:center;
+  gap:8px;margin-bottom:36px;text-align:center;
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:3px;color:var(--api-c);text-transform:uppercase;opacity:.8;
+}
+header h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(32px,5vw,64px);
+  letter-spacing:2px;
+  background:linear-gradient(90deg,var(--api-c),var(--eip-c),var(--eda-c),var(--hip-c));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;background-size:300%;
+  animation:gradShift 8s linear infinite;
+}
+@keyframes gradShift{0%{background-position:0%}100%{background-position:300%}}
+.h-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--muted);letter-spacing:1px;
+}
+.h-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px;}
+.hb{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;
+  letter-spacing:1px;padding:2px 9px;border-radius:2px;
+  border:1px solid;text-transform:uppercase;
+}
+
+/* ── LEGEND ── */
+.legend{
+  display:flex;flex-wrap:wrap;gap:10px;
+  justify-content:center;margin-bottom:24px;
+}
+.lg{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);}
+.lg-sq{width:12px;height:12px;border-radius:2px;border:1.5px solid;flex-shrink:0;}
+
+/* ── DIAGRAM CANVAS ── */
+.diagram{
+  display:flex;flex-direction:column;gap:10px;
+}
+
+/* ── ZONE ROW ── */
+.zone-row{
+  display:flex;gap:10px;align-items:stretch;
+}
+
+/* ── ZONE BAND ── */
+.zone-band{
+  display:flex;align-items:center;justify-content:center;
+  writing-mode:vertical-lr;transform:rotate(180deg);
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:0 8px;min-width:28px;flex-shrink:0;
+  border-left:2px solid;border-radius:0 3px 3px 0;
+}
+.zb-field{border-color:var(--ot-c);color:var(--ot-c);background:rgba(255,204,0,.03);}
+.zb-ot{border-color:var(--ot-c);color:var(--ot-c);background:rgba(255,204,0,.03);}
+.zb-int{border-color:var(--eip-c);color:var(--eip-c);background:rgba(0,204,136,.03);}
+.zb-it{border-color:var(--api-c);color:var(--api-c);background:rgba(0,170,255,.03);}
+.zb-cloud{border-color:var(--cloud-c);color:var(--cloud-c);background:rgba(68,221,255,.03);}
+.zb-b2b{border-color:var(--b2b-c);color:var(--b2b-c);background:rgba(255,68,136,.03);}
+
+/* ── DOMAIN CLUSTER ── */
+.cluster{
+  border-radius:6px;border:1px solid;
+  padding:10px 12px;flex:1;min-width:0;
+  animation:fadeBlock .6s ease both;
+}
+@keyframes fadeBlock{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.cluster:nth-child(1){animation-delay:.05s}.cluster:nth-child(2){animation-delay:.10s}
+.cluster:nth-child(3){animation-delay:.15s}.cluster:nth-child(4){animation-delay:.20s}
+.cluster:nth-child(5){animation-delay:.25s}
+
+.c-api  {background:var(--api-bg); border-color:rgba(0,170,255,.25);}
+.c-eda  {background:var(--eda-bg); border-color:rgba(255,124,0,.25);}
+.c-eip  {background:var(--eip-bg); border-color:rgba(0,204,136,.25);}
+.c-hip  {background:var(--hip-bg); border-color:rgba(204,85,255,.25);}
+.c-ot   {background:var(--ot-bg);  border-color:rgba(255,204,0,.25);}
+.c-b2b  {background:var(--b2b-bg); border-color:rgba(255,68,136,.25);}
+.c-cloud{background:var(--cloud-bg);border-color:rgba(68,221,255,.25);}
+.c-db   {background:var(--db-bg);  border-color:rgba(170,170,255,.25);}
+.c-sys  {background:rgba(255,255,255,.03);border-color:var(--border);}
+
+.cluster-head{
+  display:flex;align-items:center;gap:7px;
+  margin-bottom:8px;padding-bottom:6px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.ch-icon{font-size:15px;}
+.ch-title{font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+.ch-std{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;
+  font-size:7.5px;color:var(--muted);letter-spacing:.5px;
+}
+
+.c-api   .ch-title{color:var(--api-c);}
+.c-eda   .ch-title{color:var(--eda-c);}
+.c-eip   .ch-title{color:var(--eip-c);}
+.c-hip   .ch-title{color:var(--hip-c);}
+.c-ot    .ch-title{color:var(--ot-c);}
+.c-b2b   .ch-title{color:var(--b2b-c);}
+.c-cloud .ch-title{color:var(--cloud-c);}
+.c-db    .ch-title{color:var(--db-c);}
+
+/* ── BLOCK ── */
+.blocks{display:flex;flex-wrap:wrap;gap:6px;}
+.blk{
+  border-radius:4px;border:1px solid rgba(255,255,255,.08);
+  padding:6px 9px 6px 28px;
+  position:relative;flex:1 1 120px;max-width:190px;
+  background:rgba(255,255,255,.025);
+  transition:transform .12s,box-shadow .12s,border-color .12s;
+  cursor:default;
+}
+.blk:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+.blk-icon{position:absolute;top:5px;left:7px;font-size:13px;}
+.blk-name{font-size:10.5px;font-weight:700;letter-spacing:-.1px;line-height:1.2;}
+.blk-desc{font-size:8.5px;color:var(--muted);margin-top:2px;line-height:1.3;font-weight:300;}
+.blk-proto{
+  font-family:'JetBrains Mono',monospace;font-size:7.5px;
+  margin-top:3px;opacity:.6;letter-spacing:.3px;
+}
+
+/* block accent colours per cluster */
+.c-api   .blk{border-left:2px solid rgba(0,170,255,.5);}
+.c-api   .blk-name{color:#7dd3ff;}
+.c-eda   .blk{border-left:2px solid rgba(255,124,0,.5);}
+.c-eda   .blk-name{color:#ffb266;}
+.c-eip   .blk{border-left:2px solid rgba(0,204,136,.5);}
+.c-eip   .blk-name{color:#66ffcc;}
+.c-hip   .blk{border-left:2px solid rgba(204,85,255,.5);}
+.c-hip   .blk-name{color:#dd99ff;}
+.c-ot    .blk{border-left:2px solid rgba(255,204,0,.5);}
+.c-ot    .blk-name{color:#ffe066;}
+.c-b2b   .blk{border-left:2px solid rgba(255,68,136,.5);}
+.c-b2b   .blk-name{color:#ff88bb;}
+.c-cloud .blk{border-left:2px solid rgba(68,221,255,.5);}
+.c-cloud .blk-name{color:#88eeff;}
+.c-db    .blk{border-left:2px solid rgba(170,170,255,.5);}
+.c-db    .blk-name{color:#ccccff;}
+.c-sys   .blk{border-left:2px solid var(--border);}
+.c-sys   .blk-name{color:var(--ink);}
+
+/* ── FLOW ARROWS between zones ── */
+.flow-arrows{
+  display:flex;align-items:center;
+  padding:0 36px;gap:0;position:relative;
+}
+.fa-line{flex:1;height:0;border-top:1px dashed rgba(255,255,255,.1);}
+.fa-node{
+  display:flex;align-items:center;gap:6px;
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:3px;padding:4px 10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:8.5px;color:var(--muted);
+  letter-spacing:.5px;white-space:nowrap;
+  flex-shrink:0;
+}
+.fa-dot{
+  width:6px;height:6px;border-radius:50%;
+  animation:pulseflow 2s ease-in-out infinite;
+}
+@keyframes pulseflow{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── SVG MAIN DIAGRAM ── */
+.svg-wrapper{
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  margin-bottom:12px;
+  box-shadow:0 0 60px rgba(0,0,0,.4);
+}
+.svg-wrapper svg{display:block;width:100%;height:auto;}
+
+/* ── FLOW TABLE ── */
+.flow-table{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;margin-bottom:12px;
+}
+.ft-head{
+  display:grid;grid-template-columns:180px 180px 100px 1fr 80px;
+  padding:8px 14px;background:rgba(255,255,255,.03);
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;
+  color:var(--muted);letter-spacing:1px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);gap:8px;
+}
+.ft-row{
+  display:grid;grid-template-columns:180px 180px 100px 1fr 80px;
+  padding:7px 14px;border-top:1px solid rgba(255,255,255,.03);
+  font-size:10px;align-items:center;gap:8px;
+  transition:background .1s;
+}
+.ft-row:hover{background:rgba(255,255,255,.025);}
+.ft-from{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;}
+.ft-to{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;}
+.ft-proto{
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  padding:1px 6px;border-radius:2px;border:1px solid;
+  text-align:center;
+}
+.fp-api{color:var(--api-c);border-color:rgba(0,170,255,.3);background:rgba(0,170,255,.07);}
+.fp-eda{color:var(--eda-c);border-color:rgba(255,124,0,.3);background:rgba(255,124,0,.07);}
+.fp-eip{color:var(--eip-c);border-color:rgba(0,204,136,.3);background:rgba(0,204,136,.07);}
+.fp-hip{color:var(--hip-c);border-color:rgba(204,85,255,.3);background:rgba(204,85,255,.07);}
+.fp-ot{color:var(--ot-c);border-color:rgba(255,204,0,.3);background:rgba(255,204,0,.07);}
+.ft-desc{font-size:9.5px;color:var(--muted);}
+.ft-dir{font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;}
+
+/* ── FOOTER ── */
+footer{
+  margin-top:28px;display:flex;flex-wrap:wrap;
+  justify-content:space-between;align-items:flex-end;gap:12px;
+  padding-top:16px;border-top:1px solid var(--border);
+}
+.footer-brand{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--ink);}
+.footer-note{font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--muted);margin-top:3px;letter-spacing:.3px;line-height:1.7;}
+.footer-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;align-items:flex-end;}
+.footer-tag{font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--muted);opacity:.55;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="eyebrow">// Block Architecture Diagram · Integration Architect · Utility & Energy</div>
+    <h1>INTEGRATION ARCHITECTURE</h1>
+    <div class="h-sub">API · Event-Driven · Enterprise Integration Patterns · Hybrid Integration Platform</div>
+    <div class="h-badges">
+      <span class="hb" style="color:var(--api-c);border-color:rgba(0,170,255,.4)">OpenAPI 3.1</span>
+      <span class="hb" style="color:var(--eda-c);border-color:rgba(255,124,0,.4)">AsyncAPI 2.x</span>
+      <span class="hb" style="color:var(--eip-c);border-color:rgba(0,204,136,.4)">IEC 61968/61970</span>
+      <span class="hb" style="color:var(--hip-c);border-color:rgba(204,85,255,.4)">Hybrid iPaaS</span>
+      <span class="hb" style="color:var(--ot-c);border-color:rgba(255,204,0,.4)">IEC CIM</span>
+      <span class="hb" style="color:var(--cloud-c);border-color:rgba(68,221,255,.4)">MQTT 5.0</span>
+    </div>
+  </header>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="lg"><div class="lg-sq" style="background:var(--api-bg);border-color:var(--api-c)"></div>API / REST / GraphQL</div>
+    <div class="lg"><div class="lg-sq" style="background:var(--eda-bg);border-color:var(--eda-c)"></div>Event-Driven / Kafka</div>
+    <div class="lg"><div class="lg-sq" style="background:var(--eip-bg);border-color:var(--eip-c)"></div>ESB / CIM / EIP</div>
+    <div class="lg"><div class="lg-sq" style="background:var(--hip-bg);border-color:var(--hip-c)"></div>Hybrid / Cloud / B2B</div>
+    <div class="lg"><div class="lg-sq" style="background:var(--ot-bg);border-color:var(--ot-c)"></div>OT / Field / Edge</div>
+    <div class="lg"><div class="lg-sq" style="background:var(--db-bg);border-color:var(--db-c)"></div>Data / Storage</div>
+    <div class="lg"><div class="lg-sq" style="background:var(--b2b-bg);border-color:var(--b2b-c)"></div>B2B / Market</div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MAIN SVG BLOCK DIAGRAM
+  ══════════════════════════════════════ -->
+  <div class="svg-wrapper">
+    <svg viewBox="0 0 1400 920" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+
+      <defs>
+        <!-- Arrow markers -->
+        <marker id="arr-api" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#00aaff" opacity=".8"/>
+        </marker>
+        <marker id="arr-eda" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#ff7c00" opacity=".8"/>
+        </marker>
+        <marker id="arr-eip" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#00cc88" opacity=".8"/>
+        </marker>
+        <marker id="arr-hip" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#cc55ff" opacity=".8"/>
+        </marker>
+        <marker id="arr-ot" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#ffcc00" opacity=".8"/>
+        </marker>
+        <marker id="arr-white" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="rgba(255,255,255,.4)"/>
+        </marker>
+        <!-- Animated dash flows -->
+        <style>
+          .flow-api{stroke-dasharray:6 4;animation:dash 1.5s linear infinite;}
+          .flow-eda{stroke-dasharray:8 3;animation:dash 1.0s linear infinite;}
+          .flow-eip{stroke-dasharray:6 4;animation:dash 2.0s linear infinite;}
+          .flow-hip{stroke-dasharray:4 6;animation:dash 1.8s linear infinite;}
+          .flow-ot{stroke-dasharray:10 4;animation:dash 0.8s linear infinite;}
+          @keyframes dash{to{stroke-dashoffset:-20}}
+        </style>
+        <!-- Glows -->
+        <filter id="glow-api"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-eda"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-eip"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <!-- Gradient fills -->
+        <linearGradient id="grad-api" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:rgba(0,170,255,.12)"/>
+          <stop offset="100%" style="stop-color:rgba(0,170,255,.04)"/>
+        </linearGradient>
+        <linearGradient id="grad-eda" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:rgba(255,124,0,.12)"/>
+          <stop offset="100%" style="stop-color:rgba(255,124,0,.04)"/>
+        </linearGradient>
+        <linearGradient id="grad-eip" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:rgba(0,204,136,.12)"/>
+          <stop offset="100%" style="stop-color:rgba(0,204,136,.04)"/>
+        </linearGradient>
+        <linearGradient id="grad-hip" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:rgba(204,85,255,.12)"/>
+          <stop offset="100%" style="stop-color:rgba(204,85,255,.04)"/>
+        </linearGradient>
+        <linearGradient id="grad-kafka" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:rgba(255,124,0,.2)"/>
+          <stop offset="100%" style="stop-color:rgba(255,124,0,.06)"/>
+        </linearGradient>
+        <linearGradient id="grad-esb" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:rgba(0,204,136,.2)"/>
+          <stop offset="100%" style="stop-color:rgba(0,204,136,.06)"/>
+        </linearGradient>
+      </defs>
+
+      <!-- BG -->
+      <rect width="1400" height="920" fill="#0e1520"/>
+
+      <!-- ═══ ZONE LABELS (left strip) ═══ -->
+      <rect x="0" y="0" width="32" height="920" fill="rgba(0,0,0,.3)"/>
+
+      <!-- Zone: Field/OT -->
+      <rect x="0" y="10" width="4" height="215" fill="#ffcc00" rx="2"/>
+      <text x="16" y="120" fill="#ffcc00" font-size="9" letter-spacing="2" text-anchor="middle" transform="rotate(-90,16,120)" opacity=".8">FIELD / OT</text>
+
+      <!-- Zone: Integration -->
+      <rect x="0" y="235" width="4" height="220" fill="#00cc88" rx="2"/>
+      <text x="16" y="345" fill="#00cc88" font-size="9" letter-spacing="2" text-anchor="middle" transform="rotate(-90,16,345)" opacity=".8">INTEGRATION</text>
+
+      <!-- Zone: IT Applications -->
+      <rect x="0" y="465" width="4" height="220" fill="#00aaff" rx="2"/>
+      <text x="16" y="575" fill="#00aaff" font-size="9" letter-spacing="2" text-anchor="middle" transform="rotate(-90,16,575)" opacity=".8">IT SYSTEMS</text>
+
+      <!-- Zone: Cloud/B2B -->
+      <rect x="0" y="695" width="4" height="215" fill="#cc55ff" rx="2"/>
+      <text x="16" y="805" fill="#cc55ff" font-size="9" letter-spacing="2" text-anchor="middle" transform="rotate(-90,16,805)" opacity=".8">CLOUD / B2B</text>
+
+      <!-- ═══════════════════════════════════════════
+           ROW 1: FIELD / OT LAYER
+      ═══════════════════════════════════════════ -->
+
+      <!-- Smart Meters cluster -->
+      <g filter="url(#glow-ot)">
+        <rect x="40" y="16" width="200" height="210" rx="5" fill="rgba(255,204,0,.06)" stroke="rgba(255,204,0,.3)" stroke-width="1.2"/>
+        <text x="52" y="36" fill="#ffcc00" font-size="10" font-weight="700" letter-spacing=".5">SMART METERS / AMI</text>
+        <text x="52" y="48" fill="rgba(255,204,0,.4)" font-size="7.5" letter-spacing=".5">IEC 62056 · DLMS/COSEM</text>
+        <!-- blocks -->
+        <rect x="50" y="56" width="172" height="36" rx="3" fill="rgba(255,204,0,.08)" stroke="rgba(255,204,0,.2)" stroke-width="1"/>
+        <text x="70" y="70" fill="#ffe066" font-size="10" font-weight="700">Electricity Meters</text>
+        <text x="70" y="83" fill="rgba(255,204,0,.5)" font-size="8">Landis+Gyr · DLMS/COSEM · HAN</text>
+        <text x="54" y="73" fill="#ffcc00" font-size="13">⚡</text>
+
+        <rect x="50" y="98" width="172" height="36" rx="3" fill="rgba(255,204,0,.08)" stroke="rgba(255,204,0,.2)" stroke-width="1"/>
+        <text x="70" y="112" fill="#ffe066" font-size="10" font-weight="700">Gas / Water Meters</text>
+        <text x="70" y="125" fill="rgba(255,204,0,.5)" font-size="8">Kamstrup · NB-IoT · M-Bus</text>
+        <text x="54" y="115" fill="#ffcc00" font-size="13">💧</text>
+
+        <rect x="50" y="140" width="172" height="36" rx="3" fill="rgba(255,204,0,.08)" stroke="rgba(255,204,0,.2)" stroke-width="1"/>
+        <text x="70" y="154" fill="#ffe066" font-size="10" font-weight="700">Data Concentrator (DCU)</text>
+        <text x="70" y="167" fill="rgba(255,204,0,.5)" font-size="8">Itron · RF Mesh · 500 meters</text>
+        <text x="54" y="157" fill="#ffcc00" font-size="13">📡</text>
+
+        <rect x="50" y="182" width="172" height="36" rx="3" fill="rgba(255,204,0,.08)" stroke="rgba(255,204,0,.2)" stroke-width="1"/>
+        <text x="70" y="196" fill="#ffe066" font-size="10" font-weight="700">BESS / EV / Solar DER</text>
+        <text x="70" y="209" fill="rgba(255,204,0,.5)" font-size="8">OCPP 2.0 · SunSpec · OpenADR</text>
+        <text x="54" y="199" fill="#ffcc00" font-size="13">🔋</text>
+      </g>
+
+      <!-- OT SCADA cluster -->
+      <g>
+        <rect x="256" y="16" width="200" height="210" rx="5" fill="rgba(255,204,0,.06)" stroke="rgba(255,204,0,.25)" stroke-width="1.2"/>
+        <text x="268" y="36" fill="#ffcc00" font-size="10" font-weight="700" letter-spacing=".5">OT / SCADA</text>
+        <text x="268" y="48" fill="rgba(255,204,0,.4)" font-size="7.5" letter-spacing=".5">IEC 61850 · DNP3 · OPC-UA</text>
+
+        <rect x="266" y="56" width="172" height="36" rx="3" fill="rgba(255,204,0,.08)" stroke="rgba(255,204,0,.2)" stroke-width="1"/>
+        <text x="286" y="70" fill="#ffe066" font-size="10" font-weight="700">SCADA / EMS</text>
+        <text x="286" y="83" fill="rgba(255,204,0,.5)" font-size="8">GE/ABB · IEC 60870-5-104</text>
+        <text x="270" y="73" fill="#ffcc00" font-size="13">🖥</text>
+
+        <rect x="266" y="98" width="172" height="36" rx="3" fill="rgba(255,204,0,.08)" stroke="rgba(255,204,0,.2)" stroke-width="1"/>
+        <text x="286" y="112" fill="#ffe066" font-size="10" font-weight="700">IED / Protection Relays</text>
+        <text x="286" y="125" fill="rgba(255,204,0,.5)" font-size="8">IEC 61850 GOOSE · SEL/ABB</text>
+        <text x="270" y="115" fill="#ffcc00" font-size="13">⚙️</text>
+
+        <rect x="266" y="140" width="172" height="36" rx="3" fill="rgba(255,204,0,.08)" stroke="rgba(255,204,0,.2)" stroke-width="1"/>
+        <text x="286" y="154" fill="#ffe066" font-size="10" font-weight="700">OT Historian (PI Server)</text>
+        <text x="286" y="167" fill="rgba(255,204,0,.5)" font-size="8">OSIsoft PI · OPC-DA/UA</text>
+        <text x="270" y="157" fill="#ffcc00" font-size="13">📼</text>
+
+        <rect x="266" y="182" width="172" height="36" rx="3" fill="rgba(255,204,0,.08)" stroke="rgba(255,204,0,.2)" stroke-width="1"/>
+        <text x="286" y="196" fill="#ffe066" font-size="10" font-weight="700">RTU / PLC Controllers</text>
+        <text x="286" y="209" fill="rgba(255,204,0,.5)" font-size="8">DNP3 · Modbus · Siemens S7</text>
+        <text x="270" y="199" fill="#ffcc00" font-size="13">🏭</text>
+      </g>
+
+      <!-- MQTT / Edge cluster -->
+      <g>
+        <rect x="472" y="16" width="200" height="210" rx="5" fill="rgba(255,124,0,.06)" stroke="rgba(255,124,0,.25)" stroke-width="1.2"/>
+        <text x="484" y="36" fill="#ff7c00" font-size="10" font-weight="700" letter-spacing=".5">MQTT / EDGE BROKER</text>
+        <text x="484" y="48" fill="rgba(255,124,0,.4)" font-size="7.5" letter-spacing=".5">MQTT 5.0 · IoT Edge · Pattern 2</text>
+
+        <rect x="482" y="56" width="172" height="36" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="502" y="70" fill="#ffb266" font-size="10" font-weight="700">MQTT Broker (HiveMQ)</text>
+        <text x="502" y="83" fill="rgba(255,124,0,.5)" font-size="8">QoS 0/1/2 · TLS · X.509</text>
+        <text x="486" y="73" fill="#ff7c00" font-size="13">📡</text>
+
+        <rect x="482" y="98" width="172" height="36" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="502" y="112" fill="#ffb266" font-size="10" font-weight="700">Edge Kafka (Local Broker)</text>
+        <text x="502" y="125" fill="rgba(255,124,0,.5)" font-size="8">Kafka 3.x · local buffer</text>
+        <text x="486" y="115" fill="#ff7c00" font-size="13">📨</text>
+
+        <rect x="482" y="140" width="172" height="36" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="502" y="154" fill="#ffb266" font-size="10" font-weight="700">OPC-UA PubSub Bridge</text>
+        <text x="502" y="167" fill="rgba(255,124,0,.5)" font-size="8">OPC-UA → Kafka relay</text>
+        <text x="486" y="157" fill="#ff7c00" font-size="13">🔁</text>
+
+        <rect x="482" y="182" width="172" height="36" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="502" y="196" fill="#ffb266" font-size="10" font-weight="700">Protocol Adapters</text>
+        <text x="502" y="209" fill="rgba(255,124,0,.5)" font-size="8">DNP3/IEC61850 → REST/JSON</text>
+        <text x="486" y="199" fill="#ff7c00" font-size="13">🔌</text>
+      </g>
+
+      <!-- FLOW: OT Arrows down to integration layer -->
+      <line x1="140" y1="226" x2="140" y2="234" stroke="#ffcc00" stroke-width="1.5" marker-end="url(#arr-ot)" class="flow-ot"/>
+      <line x1="356" y1="226" x2="356" y2="234" stroke="#ffcc00" stroke-width="1.5" marker-end="url(#arr-ot)" class="flow-ot"/>
+      <line x1="572" y1="226" x2="572" y2="234" stroke="#ff7c00" stroke-width="1.5" marker-end="url(#arr-eda)" class="flow-eda"/>
+
+      <!-- ═══════════════════════════════════════════
+           ROW 2: INTEGRATION LAYER — ESB + KAFKA + API GW
+      ═══════════════════════════════════════════ -->
+
+      <!-- Siemens ESB / EIP -->
+      <g filter="url(#glow-eip)">
+        <rect x="40" y="240" width="300" height="210" rx="5" fill="url(#grad-esb)" stroke="rgba(0,204,136,.4)" stroke-width="1.5"/>
+        <text x="52" y="260" fill="#00cc88" font-size="11" font-weight="700" letter-spacing=".5">SIEMENS ESB — IEC CIM</text>
+        <text x="52" y="273" fill="rgba(0,204,136,.5)" font-size="7.5" letter-spacing=".5">Pattern 3 · IEC 61968/61970 · EIP</text>
+
+        <rect x="50" y="280" width="132" height="40" rx="3" fill="rgba(0,204,136,.1)" stroke="rgba(0,204,136,.3)" stroke-width="1"/>
+        <text x="70" y="296" fill="#66ffcc" font-size="10" font-weight="700">SI ESB Core</text>
+        <text x="70" y="309" fill="rgba(0,204,136,.6)" font-size="8">CIM Canonical · SOAP/JMS</text>
+        <text x="54" y="301" fill="#00cc88" font-size="14">🔀</text>
+
+        <rect x="192" y="280" width="132" height="40" rx="3" fill="rgba(0,204,136,.1)" stroke="rgba(0,204,136,.3)" stroke-width="1"/>
+        <text x="212" y="296" fill="#66ffcc" font-size="10" font-weight="700">IEC 61968-9 Adapter</text>
+        <text x="212" y="309" fill="rgba(0,204,136,.6)" font-size="8">GetReadings · ChangeMeter</text>
+        <text x="196" y="301" fill="#00cc88" font-size="14">🔌</text>
+
+        <rect x="50" y="328" width="132" height="40" rx="3" fill="rgba(0,204,136,.1)" stroke="rgba(0,204,136,.3)" stroke-width="1"/>
+        <text x="70" y="344" fill="#66ffcc" font-size="10" font-weight="700">Apache Camel Routes</text>
+        <text x="70" y="357" fill="rgba(0,204,136,.6)" font-size="8">EIP DSL · MSCONS · CIM</text>
+        <text x="54" y="349" fill="#00cc88" font-size="14">🔁</text>
+
+        <rect x="192" y="328" width="132" height="40" rx="3" fill="rgba(0,204,136,.1)" stroke="rgba(0,204,136,.3)" stroke-width="1"/>
+        <text x="212" y="344" fill="#66ffcc" font-size="10" font-weight="700">SAP PI / PO Adapter</text>
+        <text x="212" y="357" fill="rgba(0,204,136,.6)" font-size="8">IDoc · RFC · BAPI · XI</text>
+        <text x="196" y="349" fill="#00cc88" font-size="14">🔗</text>
+
+        <rect x="50" y="376" width="132" height="40" rx="3" fill="rgba(0,204,136,.1)" stroke="rgba(0,204,136,.3)" stroke-width="1"/>
+        <text x="70" y="392" fill="#66ffcc" font-size="10" font-weight="700">Schema Registry</text>
+        <text x="70" y="405" fill="rgba(0,204,136,.6)" font-size="8">CIM XSD · WSDL · OAS3</text>
+        <text x="54" y="397" fill="#00cc88" font-size="14">📋</text>
+
+        <rect x="192" y="376" width="132" height="40" rx="3" fill="rgba(0,204,136,.1)" stroke="rgba(0,204,136,.3)" stroke-width="1"/>
+        <text x="212" y="392" fill="#66ffcc" font-size="10" font-weight="700">Circuit Breaker / DLQ</text>
+        <text x="212" y="405" fill="rgba(0,204,136,.6)" font-size="8">Resilience4j · JMS DLQ</text>
+        <text x="196" y="397" fill="#00cc88" font-size="14">🧱</text>
+      </g>
+
+      <!-- KAFKA EVENT BACKBONE (centre — tall) -->
+      <g filter="url(#glow-eda)">
+        <rect x="356" y="240" width="310" height="210" rx="5" fill="url(#grad-kafka)" stroke="rgba(255,124,0,.5)" stroke-width="2"/>
+        <text x="368" y="260" fill="#ff7c00" font-size="11" font-weight="700" letter-spacing=".5">KAFKA EVENT BACKBONE</text>
+        <text x="368" y="273" fill="rgba(255,124,0,.5)" font-size="7.5" letter-spacing=".5">Pattern 2 · AsyncAPI 2.x · 500K msgs/sec</text>
+
+        <!-- Topics -->
+        <rect x="366" y="280" width="138" height="30" rx="3" fill="rgba(255,124,0,.12)" stroke="rgba(255,124,0,.3)" stroke-width="1"/>
+        <text x="378" y="293" fill="#ff7c00" font-size="9" font-family="JetBrains Mono">meter.readings.interval</text>
+        <text x="378" y="304" fill="rgba(255,124,0,.5)" font-size="7.5">48 parts · 90 days · Avro</text>
+
+        <rect x="514" y="280" width="138" height="30" rx="3" fill="rgba(255,124,0,.12)" stroke="rgba(255,124,0,.3)" stroke-width="1"/>
+        <text x="526" y="293" fill="#ff7c00" font-size="9" font-family="JetBrains Mono">meter.events.alarms</text>
+        <text x="526" y="304" fill="rgba(255,124,0,.5)" font-size="7.5">12 parts · 365 days</text>
+
+        <rect x="366" y="318" width="138" height="30" rx="3" fill="rgba(255,124,0,.12)" stroke="rgba(255,124,0,.3)" stroke-width="1"/>
+        <text x="378" y="331" fill="#ff7c00" font-size="9" font-family="JetBrains Mono">grid.events.faults</text>
+        <text x="378" y="342" fill="rgba(255,124,0,.5)" font-size="7.5">24 parts · 365 days</text>
+
+        <rect x="514" y="318" width="138" height="30" rx="3" fill="rgba(255,124,0,.12)" stroke="rgba(255,124,0,.3)" stroke-width="1"/>
+        <text x="526" y="331" fill="#ff7c00" font-size="9" font-family="JetBrains Mono">der.dispatch.commands</text>
+        <text x="526" y="342" fill="rgba(255,124,0,.5)" font-size="7.5">12 parts · 30 days</text>
+
+        <rect x="366" y="356" width="138" height="30" rx="3" fill="rgba(255,124,0,.12)" stroke="rgba(255,124,0,.3)" stroke-width="1"/>
+        <text x="378" y="369" fill="#ff7c00" font-size="9" font-family="JetBrains Mono">billing.meter.validated</text>
+        <text x="378" y="380" fill="rgba(255,124,0,.5)" font-size="7.5">24 parts · 90 days</text>
+
+        <rect x="514" y="356" width="138" height="30" rx="3" fill="rgba(255,124,0,.12)" stroke="rgba(255,124,0,.3)" stroke-width="1"/>
+        <text x="526" y="369" fill="#ff7c00" font-size="9" font-family="JetBrains Mono">ot.telemetry.scada</text>
+        <text x="526" y="380" fill="rgba(255,124,0,.5)" font-size="7.5">36 parts · 30 days</text>
+
+        <!-- Kafka Connect + ksqlDB -->
+        <rect x="366" y="394" width="130" height="40" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="386" y="408" fill="#ffb266" font-size="9" font-weight="700">Kafka Connect / CDC</text>
+        <text x="386" y="420" fill="rgba(255,124,0,.5)" font-size="7.5">Debezium · JDBC · S3 Sink</text>
+        <text x="370" y="413" fill="#ff7c00" font-size="12">🔌</text>
+
+        <rect x="504" y="394" width="148" height="40" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="524" y="408" fill="#ffb266" font-size="9" font-weight="700">ksqlDB / Kafka Streams</text>
+        <text x="524" y="420" fill="rgba(255,124,0,.5)" font-size="7.5">VEE windows · anomaly detect</text>
+        <text x="508" y="413" fill="#ff7c00" font-size="12">🌊</text>
+      </g>
+
+      <!-- API GATEWAY cluster -->
+      <g filter="url(#glow-api)">
+        <rect x="682" y="240" width="230" height="210" rx="5" fill="url(#grad-api)" stroke="rgba(0,170,255,.4)" stroke-width="1.5"/>
+        <text x="694" y="260" fill="#00aaff" font-size="11" font-weight="700" letter-spacing=".5">API GATEWAY LAYER</text>
+        <text x="694" y="273" fill="rgba(0,170,255,.5)" font-size="7.5" letter-spacing=".5">Pattern 1 · OpenAPI 3.1 · mTLS · OAuth2</text>
+
+        <rect x="692" y="280" width="210" height="36" rx="3" fill="rgba(0,170,255,.1)" stroke="rgba(0,170,255,.3)" stroke-width="1"/>
+        <text x="712" y="294" fill="#7dd3ff" font-size="10" font-weight="700">API Gateway (Apigee / Kong)</text>
+        <text x="712" y="307" fill="rgba(0,170,255,.5)" font-size="8">Rate-limit · OAuth2 · Dev Portal</text>
+        <text x="696" y="299" fill="#00aaff" font-size="14">🌐</text>
+
+        <rect x="692" y="324" width="100" height="36" rx="3" fill="rgba(0,170,255,.1)" stroke="rgba(0,170,255,.3)" stroke-width="1"/>
+        <text x="712" y="338" fill="#7dd3ff" font-size="10" font-weight="700">OAuth2 / OIDC</text>
+        <text x="712" y="351" fill="rgba(0,170,255,.5)" font-size="8">Azure AD · PKCE</text>
+        <text x="696" y="345" fill="#00aaff" font-size="14">🔐</text>
+
+        <rect x="800" y="324" width="102" height="36" rx="3" fill="rgba(0,170,255,.1)" stroke="rgba(0,170,255,.3)" stroke-width="1"/>
+        <text x="820" y="338" fill="#7dd3ff" font-size="10" font-weight="700">mTLS Termination</text>
+        <text x="820" y="351" fill="rgba(0,170,255,.5)" font-size="8">Cert Auth · SPIFFE</text>
+        <text x="804" y="345" fill="#00aaff" font-size="14">🔒</text>
+
+        <rect x="692" y="368" width="210" height="36" rx="3" fill="rgba(0,170,255,.1)" stroke="rgba(0,170,255,.3)" stroke-width="1"/>
+        <text x="712" y="382" fill="#7dd3ff" font-size="10" font-weight="700">API Mediation (MuleSoft)</text>
+        <text x="712" y="395" fill="rgba(0,170,255,.5)" font-size="8">SOAP→REST · IEC 61968 transform</text>
+        <text x="696" y="389" fill="#00aaff" font-size="14">🔄</text>
+
+        <rect x="692" y="412" width="210" height="30" rx="3" fill="rgba(0,170,255,.1)" stroke="rgba(0,170,255,.3)" stroke-width="1"/>
+        <text x="712" y="426" fill="#7dd3ff" font-size="10" font-weight="700">GraphQL / gRPC Gateway</text>
+        <text x="712" y="439" fill="rgba(0,170,255,.5)" font-size="8">Analytics queries · CIM asset API</text>
+        <text x="696" y="433" fill="#00aaff" font-size="14">📊</text>
+      </g>
+
+      <!-- HIP / MuleSoft cluster -->
+      <g>
+        <rect x="928" y="240" width="230" height="210" rx="5" fill="rgba(204,85,255,.07)" stroke="rgba(204,85,255,.3)" stroke-width="1.2"/>
+        <text x="940" y="260" fill="#cc55ff" font-size="11" font-weight="700" letter-spacing=".5">HYBRID iPaaS</text>
+        <text x="940" y="273" fill="rgba(204,85,255,.5)" font-size="7.5" letter-spacing=".5">Pattern 4 · MuleSoft · Azure Integration</text>
+
+        <rect x="938" y="280" width="210" height="36" rx="3" fill="rgba(204,85,255,.1)" stroke="rgba(204,85,255,.3)" stroke-width="1"/>
+        <text x="958" y="294" fill="#dd99ff" font-size="10" font-weight="700">MuleSoft Anypoint</text>
+        <text x="958" y="307" fill="rgba(204,85,255,.5)" font-size="8">CloudHub · RTF · API-Led</text>
+        <text x="942" y="299" fill="#cc55ff" font-size="14">🔀</text>
+
+        <rect x="938" y="324" width="100" height="36" rx="3" fill="rgba(204,85,255,.1)" stroke="rgba(204,85,255,.3)" stroke-width="1"/>
+        <text x="958" y="338" fill="#dd99ff" font-size="10" font-weight="700">Azure Logic Apps</text>
+        <text x="958" y="351" fill="rgba(204,85,255,.5)" font-size="8">Serverless flows</text>
+        <text x="942" y="345" fill="#cc55ff" font-size="14">☁️</text>
+
+        <rect x="1046" y="324" width="102" height="36" rx="3" fill="rgba(204,85,255,.1)" stroke="rgba(204,85,255,.3)" stroke-width="1"/>
+        <text x="1066" y="338" fill="#dd99ff" font-size="10" font-weight="700">Azure Service Bus</text>
+        <text x="1066" y="351" fill="rgba(204,85,255,.5)" font-size="8">Cloud JMS · queues</text>
+        <text x="1050" y="345" fill="#cc55ff" font-size="14">📬</text>
+
+        <rect x="938" y="368" width="100" height="36" rx="3" fill="rgba(204,85,255,.1)" stroke="rgba(204,85,255,.3)" stroke-width="1"/>
+        <text x="958" y="382" fill="#dd99ff" font-size="10" font-weight="700">OpenADR 3.0 VTN</text>
+        <text x="958" y="395" fill="rgba(204,85,255,.5)" font-size="8">DR signals · DERMS</text>
+        <text x="942" y="389" fill="#cc55ff" font-size="14">⚡</text>
+
+        <rect x="1046" y="368" width="102" height="36" rx="3" fill="rgba(204,85,255,.1)" stroke="rgba(204,85,255,.3)" stroke-width="1"/>
+        <text x="1066" y="382" fill="#dd99ff" font-size="10" font-weight="700">B2B Gateway (AS2)</text>
+        <text x="1066" y="395" fill="rgba(204,85,255,.5)" font-size="8">MSCONS · EDIFACT</text>
+        <text x="1050" y="389" fill="#cc55ff" font-size="14">🤝</text>
+
+        <rect x="938" y="412" width="210" height="30" rx="3" fill="rgba(204,85,255,.1)" stroke="rgba(204,85,255,.3)" stroke-width="1"/>
+        <text x="958" y="426" fill="#dd99ff" font-size="10" font-weight="700">Integration Observability</text>
+        <text x="958" y="439" fill="rgba(204,85,255,.5)" font-size="8">OpenTelemetry · Kibana · Grafana</text>
+        <text x="942" y="433" fill="#cc55ff" font-size="14">👁</text>
+      </g>
+
+      <!-- ═══ FLOW ARROWS: Integration → IT ═══ -->
+      <line x1="190" y1="450" x2="190" y2="468" stroke="#00cc88" stroke-width="1.5" marker-end="url(#arr-eip)" class="flow-eip"/>
+      <line x1="511" y1="450" x2="511" y2="468" stroke="#ff7c00" stroke-width="1.5" marker-end="url(#arr-eda)" class="flow-eda"/>
+      <line x1="797" y1="450" x2="797" y2="468" stroke="#00aaff" stroke-width="1.5" marker-end="url(#arr-api)" class="flow-api"/>
+      <line x1="1043" y1="450" x2="1043" y2="468" stroke="#cc55ff" stroke-width="1.5" marker-end="url(#arr-hip)" class="flow-hip"/>
+
+      <!-- ═══════════════════════════════════════════
+           ROW 3: IT APPLICATIONS LAYER
+      ═══════════════════════════════════════════ -->
+
+      <!-- MDMS / Oracle -->
+      <g>
+        <rect x="40" y="472" width="200" height="200" rx="5" fill="rgba(0,170,255,.06)" stroke="rgba(0,170,255,.25)" stroke-width="1.2"/>
+        <text x="52" y="492" fill="#00aaff" font-size="10" font-weight="700" letter-spacing=".5">MDMS / METERING</text>
+        <text x="52" y="504" fill="rgba(0,170,255,.4)" font-size="7.5">IEC 61968-9 · Oracle Utilities</text>
+
+        <rect x="50" y="512" width="172" height="32" rx="3" fill="rgba(0,170,255,.08)" stroke="rgba(0,170,255,.2)" stroke-width="1"/>
+        <text x="70" y="525" fill="#7dd3ff" font-size="10" font-weight="700">Oracle Utilities MDMS</text>
+        <text x="70" y="537" fill="rgba(0,170,255,.5)" font-size="8">VEE · IDR · 61968-9</text>
+        <text x="54" y="530" fill="#00aaff" font-size="12">📊</text>
+
+        <rect x="50" y="550" width="172" height="32" rx="3" fill="rgba(0,170,255,.08)" stroke="rgba(0,170,255,.2)" stroke-width="1"/>
+        <text x="70" y="563" fill="#7dd3ff" font-size="10" font-weight="700">AMI Head-End System</text>
+        <text x="70" y="575" fill="rgba(0,170,255,.5)" font-size="8">Itron/Landis+Gyr · C12.22</text>
+        <text x="54" y="568" fill="#00aaff" font-size="12">📶</text>
+
+        <rect x="50" y="588" width="172" height="32" rx="3" fill="rgba(0,170,255,.08)" stroke="rgba(0,170,255,.2)" stroke-width="1"/>
+        <text x="70" y="601" fill="#7dd3ff" font-size="10" font-weight="700">Oracle DB 19c / Exadata</text>
+        <text x="70" y="613" fill="rgba(0,170,255,.5)" font-size="8">Interval data · TDE · RAC</text>
+        <text x="54" y="606" fill="#00aaff" font-size="12">🗄</text>
+
+        <rect x="50" y="626" width="172" height="32" rx="3" fill="rgba(0,170,255,.08)" stroke="rgba(0,170,255,.2)" stroke-width="1"/>
+        <text x="70" y="639" fill="#7dd3ff" font-size="10" font-weight="700">InfluxDB Time-Series</text>
+        <text x="70" y="651" fill="rgba(0,170,255,.5)" font-size="8">15-min interval · Flux</text>
+        <text x="54" y="644" fill="#00aaff" font-size="12">📈</text>
+      </g>
+
+      <!-- SAP IS-U / ERP -->
+      <g>
+        <rect x="256" y="472" width="200" height="200" rx="5" fill="rgba(0,204,136,.06)" stroke="rgba(0,204,136,.25)" stroke-width="1.2"/>
+        <text x="268" y="492" fill="#00cc88" font-size="10" font-weight="700" letter-spacing=".5">SAP UTILITY SUITE</text>
+        <text x="268" y="504" fill="rgba(0,204,136,.4)" font-size="7.5">SAP IS-U · S/4HANA · SAP PI</text>
+
+        <rect x="266" y="512" width="172" height="32" rx="3" fill="rgba(0,204,136,.08)" stroke="rgba(0,204,136,.2)" stroke-width="1"/>
+        <text x="286" y="525" fill="#66ffcc" font-size="10" font-weight="700">SAP IS-U / S4 Utilities</text>
+        <text x="286" y="537" fill="rgba(0,204,136,.5)" font-size="8">Device mgmt · Billing · FI-CA</text>
+        <text x="270" y="530" fill="#00cc88" font-size="12">💡</text>
+
+        <rect x="266" y="550" width="172" height="32" rx="3" fill="rgba(0,204,136,.08)" stroke="rgba(0,204,136,.2)" stroke-width="1"/>
+        <text x="286" y="563" fill="#66ffcc" font-size="10" font-weight="700">SAP Convergent Invoicing</text>
+        <text x="286" y="575" fill="rgba(0,204,136,.5)" font-size="8">Multi-commodity billing</text>
+        <text x="270" y="568" fill="#00cc88" font-size="12">💰</text>
+
+        <rect x="266" y="588" width="172" height="32" rx="3" fill="rgba(0,204,136,.08)" stroke="rgba(0,204,136,.2)" stroke-width="1"/>
+        <text x="286" y="601" fill="#66ffcc" font-size="10" font-weight="700">SAP PM / EAM</text>
+        <text x="286" y="613" fill="rgba(0,204,136,.5)" font-size="8">Asset mgmt · work orders</text>
+        <text x="270" y="606" fill="#00cc88" font-size="12">🔧</text>
+
+        <rect x="266" y="626" width="172" height="32" rx="3" fill="rgba(0,204,136,.08)" stroke="rgba(0,204,136,.2)" stroke-width="1"/>
+        <text x="286" y="639" fill="#66ffcc" font-size="10" font-weight="700">SAP MDG</text>
+        <text x="286" y="651" fill="rgba(0,204,136,.5)" font-size="8">Master data governance</text>
+        <text x="270" y="644" fill="#00cc88" font-size="12">📦</text>
+      </g>
+
+      <!-- DMS / OMS / GIS -->
+      <g>
+        <rect x="472" y="472" width="200" height="200" rx="5" fill="rgba(255,124,0,.06)" stroke="rgba(255,124,0,.25)" stroke-width="1.2"/>
+        <text x="484" y="492" fill="#ff7c00" font-size="10" font-weight="700" letter-spacing=".5">GRID OPERATIONS</text>
+        <text x="484" y="504" fill="rgba(255,124,0,.4)" font-size="7.5">DMS · OMS · DERMS · GIS</text>
+
+        <rect x="482" y="512" width="172" height="32" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="502" y="525" fill="#ffb266" font-size="10" font-weight="700">DMS / OMS</text>
+        <text x="502" y="537" fill="rgba(255,124,0,.5)" font-size="8">FLISR · outage · crew dispatch</text>
+        <text x="486" y="530" fill="#ff7c00" font-size="12">⚡</text>
+
+        <rect x="482" y="550" width="172" height="32" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="502" y="563" fill="#ffb266" font-size="10" font-weight="700">DERMS / VPP</text>
+        <text x="502" y="575" fill="rgba(255,124,0,.5)" font-size="8">DER dispatch · OpenADR 3.0</text>
+        <text x="486" y="568" fill="#ff7c00" font-size="12">🔋</text>
+
+        <rect x="482" y="588" width="172" height="32" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="502" y="601" fill="#ffb266" font-size="10" font-weight="700">GIS Network Model</text>
+        <text x="502" y="613" fill="rgba(255,124,0,.5)" font-size="8">Esri ArcGIS · CIM topology</text>
+        <text x="486" y="606" fill="#ff7c00" font-size="12">🗺</text>
+
+        <rect x="482" y="626" width="172" height="32" rx="3" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.2)" stroke-width="1"/>
+        <text x="502" y="639" fill="#ffb266" font-size="10" font-weight="700">Mobile Workforce (MWM)</text>
+        <text x="502" y="651" fill="rgba(255,124,0,.5)" font-size="8">Field tablets · GIS-enabled</text>
+        <text x="486" y="644" fill="#ff7c00" font-size="12">📱</text>
+      </g>
+
+      <!-- Analytics / Observability -->
+      <g>
+        <rect x="688" y="472" width="220" height="200" rx="5" fill="rgba(170,170,255,.06)" stroke="rgba(170,170,255,.25)" stroke-width="1.2"/>
+        <text x="700" y="492" fill="#aaaaff" font-size="10" font-weight="700" letter-spacing=".5">ANALYTICS / OBS</text>
+        <text x="700" y="504" fill="rgba(170,170,255,.4)" font-size="7.5">Kibana · Splunk · Grafana</text>
+
+        <rect x="698" y="512" width="200" height="32" rx="3" fill="rgba(170,170,255,.08)" stroke="rgba(170,170,255,.2)" stroke-width="1"/>
+        <text x="718" y="525" fill="#ccccff" font-size="10" font-weight="700">Kibana / Elasticsearch</text>
+        <text x="718" y="537" fill="rgba(170,170,255,.5)" font-size="8">AMI KPIs · exception reports</text>
+        <text x="702" y="530" fill="#aaaaff" font-size="12">🔍</text>
+
+        <rect x="698" y="550" width="200" height="32" rx="3" fill="rgba(170,170,255,.08)" stroke="rgba(170,170,255,.2)" stroke-width="1"/>
+        <text x="718" y="563" fill="#ccccff" font-size="10" font-weight="700">Splunk SIEM / SOAR</text>
+        <text x="718" y="575" fill="rgba(170,170,255,.5)" font-size="8">Security events · NERC CIP</text>
+        <text x="702" y="568" fill="#aaaaff" font-size="12">🛡</text>
+
+        <rect x="698" y="588" width="200" height="32" rx="3" fill="rgba(170,170,255,.08)" stroke="rgba(170,170,255,.2)" stroke-width="1"/>
+        <text x="718" y="601" fill="#ccccff" font-size="10" font-weight="700">Grafana + Prometheus</text>
+        <text x="718" y="613" fill="rgba(170,170,255,.5)" font-size="8">Real-time metrics · alerting</text>
+        <text x="702" y="606" fill="#aaaaff" font-size="12">📉</text>
+
+        <rect x="698" y="626" width="200" height="32" rx="3" fill="rgba(170,170,255,.08)" stroke="rgba(170,170,255,.2)" stroke-width="1"/>
+        <text x="718" y="639" fill="#ccccff" font-size="10" font-weight="700">AI/ML Platform (Azure ML)</text>
+        <text x="718" y="651" fill="rgba(170,170,255,.5)" font-size="8">Predictive maint · forecasting</text>
+        <text x="702" y="644" fill="#aaaaff" font-size="12">🧠</text>
+      </g>
+
+      <!-- IAM / Security -->
+      <g>
+        <rect x="924" y="472" width="238" height="200" rx="5" fill="rgba(255,68,136,.06)" stroke="rgba(255,68,136,.25)" stroke-width="1.2"/>
+        <text x="936" y="492" fill="#ff4488" font-size="10" font-weight="700" letter-spacing=".5">IAM / SECURITY</text>
+        <text x="936" y="504" fill="rgba(255,68,136,.4)" font-size="7.5">Zero Trust · PAM · PKI</text>
+
+        <rect x="934" y="512" width="218" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="954" y="525" fill="#ff88bb" font-size="10" font-weight="700">Azure AD Entra ID</text>
+        <text x="954" y="537" fill="rgba(255,68,136,.5)" font-size="8">SSO · OIDC · SAML · MFA</text>
+        <text x="938" y="530" fill="#ff4488" font-size="12">🪪</text>
+
+        <rect x="934" y="550" width="218" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="954" y="563" fill="#ff88bb" font-size="10" font-weight="700">CyberArk PAM</text>
+        <text x="954" y="575" fill="rgba(255,68,136,.5)" font-size="8">JIT access · session recording</text>
+        <text x="938" y="568" fill="#ff4488" font-size="12">🔑</text>
+
+        <rect x="934" y="588" width="218" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="954" y="601" fill="#ff88bb" font-size="10" font-weight="700">HashiCorp Vault</text>
+        <text x="954" y="613" fill="rgba(255,68,136,.5)" font-size="8">Secrets · dynamic creds · mTLS</text>
+        <text x="938" y="606" fill="#ff4488" font-size="12">🔐</text>
+
+        <rect x="934" y="626" width="218" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="954" y="639" fill="#ff88bb" font-size="10" font-weight="700">OT PKI / HSM (Thales)</text>
+        <text x="954" y="651" fill="rgba(255,68,136,.5)" font-size="8">X.509 IED certs · PKCS#11</text>
+        <text x="938" y="644" fill="#ff4488" font-size="12">🏭</text>
+      </g>
+
+      <!-- ═══ FLOW ARROWS: IT → Cloud ═══ -->
+      <line x1="140" y1="672" x2="140" y2="702" stroke="#00aaff" stroke-width="1.5" marker-end="url(#arr-api)" class="flow-api"/>
+      <line x1="356" y1="672" x2="356" y2="702" stroke="#00cc88" stroke-width="1.5" marker-end="url(#arr-eip)" class="flow-eip"/>
+      <line x1="572" y1="672" x2="572" y2="702" stroke="#ff7c00" stroke-width="1.5" marker-end="url(#arr-eda)" class="flow-eda"/>
+      <line x1="797" y1="672" x2="797" y2="702" stroke="#aaaaff" stroke-width="1.5" marker-end="url(#arr-white)" class="flow-api"/>
+      <line x1="1043" y1="672" x2="1043" y2="702" stroke="#cc55ff" stroke-width="1.5" marker-end="url(#arr-hip)" class="flow-hip"/>
+
+      <!-- ═══════════════════════════════════════════
+           ROW 4: CLOUD / B2B / DATA LAKE LAYER
+      ═══════════════════════════════════════════ -->
+
+      <!-- Cloud Integration -->
+      <g>
+        <rect x="40" y="706" width="280" height="196" rx="5" fill="rgba(68,221,255,.06)" stroke="rgba(68,221,255,.25)" stroke-width="1.2"/>
+        <text x="52" y="726" fill="#44ddff" font-size="10" font-weight="700" letter-spacing=".5">CLOUD INTEGRATION</text>
+        <text x="52" y="738" fill="rgba(68,221,255,.4)" font-size="7.5">Azure · AWS · Confluent Cloud</text>
+
+        <rect x="50" y="746" width="125" height="32" rx="3" fill="rgba(68,221,255,.08)" stroke="rgba(68,221,255,.2)" stroke-width="1"/>
+        <text x="70" y="759" fill="#88eeff" font-size="10" font-weight="700">Azure API Mgmt</text>
+        <text x="70" y="771" fill="rgba(68,221,255,.5)" font-size="8">Cloud API gateway</text>
+        <text x="54" y="764" fill="#44ddff" font-size="12">☁️</text>
+
+        <rect x="185" y="746" width="125" height="32" rx="3" fill="rgba(68,221,255,.08)" stroke="rgba(68,221,255,.2)" stroke-width="1"/>
+        <text x="205" y="759" fill="#88eeff" font-size="10" font-weight="700">Confluent Cloud</text>
+        <text x="205" y="771" fill="rgba(68,221,255,.5)" font-size="8">Managed Kafka SaaS</text>
+        <text x="189" y="764" fill="#44ddff" font-size="12">📨</text>
+
+        <rect x="50" y="786" width="125" height="32" rx="3" fill="rgba(68,221,255,.08)" stroke="rgba(68,221,255,.2)" stroke-width="1"/>
+        <text x="70" y="799" fill="#88eeff" font-size="10" font-weight="700">Azure Event Grid</text>
+        <text x="70" y="811" fill="rgba(68,221,255,.5)" font-size="8">CloudEvents · pub/sub</text>
+        <text x="54" y="804" fill="#44ddff" font-size="12">⚡</text>
+
+        <rect x="185" y="786" width="125" height="32" rx="3" fill="rgba(68,221,255,.08)" stroke="rgba(68,221,255,.2)" stroke-width="1"/>
+        <text x="205" y="799" fill="#88eeff" font-size="10" font-weight="700">Azure Service Bus</text>
+        <text x="205" y="811" fill="rgba(68,221,255,.5)" font-size="8">Cloud JMS · DLQ</text>
+        <text x="189" y="804" fill="#44ddff" font-size="12">📬</text>
+
+        <rect x="50" y="826" width="260" height="32" rx="3" fill="rgba(68,221,255,.08)" stroke="rgba(68,221,255,.2)" stroke-width="1"/>
+        <text x="70" y="839" fill="#88eeff" font-size="10" font-weight="700">Data Lake (Hadoop / Databricks)</text>
+        <text x="70" y="851" fill="rgba(68,221,255,.5)" font-size="8">Historical archive · ML feature store · ODI ETL</text>
+        <text x="54" y="844" fill="#44ddff" font-size="12">🗃</text>
+
+        <rect x="50" y="866" width="260" height="28" rx="3" fill="rgba(68,221,255,.08)" stroke="rgba(68,221,255,.2)" stroke-width="1"/>
+        <text x="70" y="879" fill="#88eeff" font-size="10" font-weight="700">CRM / Customer Portal</text>
+        <text x="70" y="891" fill="rgba(68,221,255,.5)" font-size="8">SAP C4C · Self-service · REST API</text>
+        <text x="54" y="884" fill="#44ddff" font-size="12">👥</text>
+      </g>
+
+      <!-- B2B / Market -->
+      <g>
+        <rect x="336" y="706" width="280" height="196" rx="5" fill="rgba(255,68,136,.06)" stroke="rgba(255,68,136,.25)" stroke-width="1.2"/>
+        <text x="348" y="726" fill="#ff4488" font-size="10" font-weight="700" letter-spacing=".5">B2B / ENERGY MARKET</text>
+        <text x="348" y="738" fill="rgba(255,68,136,.4)" font-size="7.5">MSCONS · EDIFACT · IEC 62325</text>
+
+        <rect x="346" y="746" width="125" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="366" y="759" fill="#ff88bb" font-size="10" font-weight="700">B2B Gateway (AS2)</text>
+        <text x="366" y="771" fill="rgba(255,68,136,.5)" font-size="8">Market messaging hub</text>
+        <text x="350" y="764" fill="#ff4488" font-size="12">🤝</text>
+
+        <rect x="481" y="746" width="125" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="501" y="759" fill="#ff88bb" font-size="10" font-weight="700">MSCONS / EDIFACT</text>
+        <text x="501" y="771" fill="rgba(255,68,136,.5)" font-size="8">Settlement · switch flows</text>
+        <text x="485" y="764" fill="#ff4488" font-size="12">📄</text>
+
+        <rect x="346" y="786" width="125" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="366" y="799" fill="#ff88bb" font-size="10" font-weight="700">OpenADR 3.0 VTN</text>
+        <text x="366" y="811" fill="rgba(255,68,136,.5)" font-size="8">DR signals · DERMS</text>
+        <text x="350" y="804" fill="#ff4488" font-size="12">📡</text>
+
+        <rect x="481" y="786" width="125" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="501" y="799" fill="#ff88bb" font-size="10" font-weight="700">IEC 62325 CIM-XML</text>
+        <text x="501" y="811" fill="rgba(255,68,136,.5)" font-size="8">Balancing · capacity market</text>
+        <text x="485" y="804" fill="#ff4488" font-size="12">🏦</text>
+
+        <rect x="346" y="826" width="260" height="32" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="366" y="839" fill="#ff88bb" font-size="10" font-weight="700">DSO / TSO Interface</text>
+        <text x="366" y="851" fill="rgba(255,68,136,.5)" font-size="8">Grid operator data exchange · CIM profile</text>
+        <text x="350" y="844" fill="#ff4488" font-size="12">🔗</text>
+
+        <rect x="346" y="866" width="260" height="28" rx="3" fill="rgba(255,68,136,.08)" stroke="rgba(255,68,136,.2)" stroke-width="1"/>
+        <text x="366" y="879" fill="#ff88bb" font-size="10" font-weight="700">3rd Party API Ecosystem</text>
+        <text x="366" y="891" fill="rgba(255,68,136,.5)" font-size="8">Retailers · Aggregators · EV operators</text>
+        <text x="350" y="884" fill="#ff4488" font-size="12">🌐</text>
+      </g>
+
+      <!-- Pattern 1–4 Summary Boxes -->
+      <g>
+        <rect x="632" y="706" width="740" height="196" rx="5" fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+        <text x="644" y="726" fill="rgba(255,255,255,.4)" font-size="10" font-weight="700" letter-spacing=".5">CROSS-CUTTING CONCERNS &amp; PATTERN SUMMARY</text>
+
+        <!-- P1 -->
+        <rect x="642" y="736" width="170" height="152" rx="4" fill="rgba(0,170,255,.08)" stroke="rgba(0,170,255,.3)" stroke-width="1.2"/>
+        <text x="654" y="752" fill="#00aaff" font-size="10" font-weight="700">P1 · API Integration</text>
+        <text x="654" y="766" fill="rgba(0,170,255,.6)" font-size="8">REST · GraphQL · gRPC</text>
+        <text x="654" y="782" fill="rgba(255,255,255,.5)" font-size="8">• Apigee / Kong Gateway</text>
+        <text x="654" y="795" fill="rgba(255,255,255,.5)" font-size="8">• OAuth2 / mTLS / PKCE</text>
+        <text x="654" y="808" fill="rgba(255,255,255,.5)" font-size="8">• OpenAPI 3.1 spec-first</text>
+        <text x="654" y="821" fill="rgba(255,255,255,.5)" font-size="8">• IEC 61968 SOAP→REST</text>
+        <text x="654" y="834" fill="rgba(255,255,255,.5)" font-size="8">• Contract testing (Pact)</text>
+        <text x="654" y="847" fill="rgba(255,255,255,.5)" font-size="8">• Rate limiting · DDoS</text>
+        <text x="654" y="878" fill="#00aaff" font-size="8" font-family="JetBrains Mono">OpenAPI 3.1 · IEC 61968</text>
+
+        <!-- P2 -->
+        <rect x="822" y="736" width="170" height="152" rx="4" fill="rgba(255,124,0,.08)" stroke="rgba(255,124,0,.3)" stroke-width="1.2"/>
+        <text x="834" y="752" fill="#ff7c00" font-size="10" font-weight="700">P2 · Event-Driven</text>
+        <text x="834" y="766" fill="rgba(255,124,0,.6)" font-size="8">Kafka · MQTT · AMQP</text>
+        <text x="834" y="782" fill="rgba(255,255,255,.5)" font-size="8">• Kafka 500K msgs/sec</text>
+        <text x="834" y="795" fill="rgba(255,255,255,.5)" font-size="8">• Avro Schema Registry</text>
+        <text x="834" y="808" fill="rgba(255,255,255,.5)" font-size="8">• ksqlDB stream process</text>
+        <text x="834" y="821" fill="rgba(255,255,255,.5)" font-size="8">• Debezium CDC Oracle</text>
+        <text x="834" y="834" fill="rgba(255,255,255,.5)" font-size="8">• MQTT IoT telemetry</text>
+        <text x="834" y="847" fill="rgba(255,255,255,.5)" font-size="8">• Exactly-once delivery</text>
+        <text x="834" y="878" fill="#ff7c00" font-size="8" font-family="JetBrains Mono">AsyncAPI 2.x · CloudEvents</text>
+
+        <!-- P3 -->
+        <rect x="1002" y="736" width="170" height="152" rx="4" fill="rgba(0,204,136,.08)" stroke="rgba(0,204,136,.3)" stroke-width="1.2"/>
+        <text x="1014" y="752" fill="#00cc88" font-size="10" font-weight="700">P3 · Enterprise EIP</text>
+        <text x="1014" y="766" fill="rgba(0,204,136,.6)" font-size="8">ESB · CIM · GoF Patterns</text>
+        <text x="1014" y="782" fill="rgba(255,255,255,.5)" font-size="8">• Siemens ESB + CIM</text>
+        <text x="1014" y="795" fill="rgba(255,255,255,.5)" font-size="8">• Apache Camel routes</text>
+        <text x="1014" y="808" fill="rgba(255,255,255,.5)" font-size="8">• Content-based routing</text>
+        <text x="1014" y="821" fill="rgba(255,255,255,.5)" font-size="8">• Canonical data model</text>
+        <text x="1014" y="834" fill="rgba(255,255,255,.5)" font-size="8">• Circuit breaker / DLQ</text>
+        <text x="1014" y="847" fill="rgba(255,255,255,.5)" font-size="8">• SAP PI/PO adapters</text>
+        <text x="1014" y="878" fill="#00cc88" font-size="8" font-family="JetBrains Mono">IEC 61968/61970 · CIM</text>
+
+        <!-- P4 -->
+        <rect x="1182" y="736" width="170" height="152" rx="4" fill="rgba(204,85,255,.08)" stroke="rgba(204,85,255,.3)" stroke-width="1.2"/>
+        <text x="1194" y="752" fill="#cc55ff" font-size="10" font-weight="700">P4 · Hybrid iPaaS</text>
+        <text x="1194" y="766" fill="rgba(204,85,255,.6)" font-size="8">Cloud · On-Prem · B2B</text>
+        <text x="1194" y="782" fill="rgba(255,255,255,.5)" font-size="8">• MuleSoft Anypoint</text>
+        <text x="1194" y="795" fill="rgba(255,255,255,.5)" font-size="8">• Azure Integration Svc</text>
+        <text x="1194" y="808" fill="rgba(255,255,255,.5)" font-size="8">• OpenADR 3.0 VTN</text>
+        <text x="1194" y="821" fill="rgba(255,255,255,.5)" font-size="8">• B2B AS2 / MSCONS</text>
+        <text x="1194" y="834" fill="rgba(255,255,255,.5)" font-size="8">• OpenTelemetry OBS</text>
+        <text x="1194" y="847" fill="rgba(255,255,255,.5)" font-size="8">• 4-zone deployment</text>
+        <text x="1194" y="878" fill="#cc55ff" font-size="8" font-family="JetBrains Mono">MuleSoft · Azure · B2B</text>
+      </g>
+
+      <!-- ═══ HORIZONTAL FLOW ARROWS between clusters ═══ -->
+      <!-- Siemens ESB ↔ Kafka -->
+      <line x1="340" y1="345" x2="356" y2="345" stroke="#00cc88" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-eip)" class="flow-eip"/>
+      <line x1="356" y1="360" x2="340" y2="360" stroke="#ff7c00" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-eda)" class="flow-eda"/>
+
+      <!-- Kafka ↔ API GW -->
+      <line x1="666" y1="345" x2="682" y2="345" stroke="#ff7c00" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-eda)" class="flow-eda"/>
+      <line x1="682" y1="360" x2="666" y2="360" stroke="#00aaff" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-api)" class="flow-api"/>
+
+      <!-- API GW ↔ HIP -->
+      <line x1="912" y1="345" x2="928" y2="345" stroke="#00aaff" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-api)" class="flow-api"/>
+      <line x1="928" y1="360" x2="912" y2="360" stroke="#cc55ff" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-hip)" class="flow-hip"/>
+
+      <!-- IT layer horizontal -->
+      <line x1="240" y1="572" x2="256" y2="572" stroke="#00cc88" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr-eip)" class="flow-eip"/>
+      <line x1="456" y1="572" x2="472" y2="572" stroke="#ff7c00" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr-eda)" class="flow-eda"/>
+      <line x1="672" y1="572" x2="688" y2="572" stroke="#00aaff" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr-api)" class="flow-api"/>
+      <line x1="908" y1="572" x2="924" y2="572" stroke="#aaaaff" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr-white)" class="flow-api"/>
+
+      <!-- Field layer horizontal -->
+      <line x1="240" y1="121" x2="256" y2="121" stroke="#ffcc00" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr-ot)" class="flow-ot"/>
+      <line x1="456" y1="121" x2="472" y2="121" stroke="#ffcc00" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr-ot)" class="flow-ot"/>
+
+    </svg>
+  </div>
+
+  <!-- KEY INTEGRATION FLOWS TABLE -->
+  <div class="flow-table">
+    <div class="ft-head"><span>Source</span><span>Target</span><span>Protocol</span><span>Flow / Data</span><span>Dir</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--ot-c)">Smart Meters</span><span class="ft-to" style="color:var(--eda-c)">MQTT Broker</span><span class="ft-proto fp-ot">DLMS/MQTT</span><div class="ft-desc">Interval reads, alarms, tamper events — QoS 2 · TLS · X.509</div><span class="ft-dir" style="color:var(--ot-c)">↑</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--eda-c)">MQTT / Edge Kafka</span><span class="ft-to" style="color:var(--eda-c)">Kafka Backbone</span><span class="ft-proto fp-eda">Kafka Connect</span><div class="ft-desc">meter.readings.interval topic — Avro schema · 48 partitions</div><span class="ft-dir" style="color:var(--eda-c)">↑</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--ot-c)">SCADA / OT Historian</span><span class="ft-to" style="color:var(--eip-c)">Siemens ESB</span><span class="ft-proto fp-eip">OPC-UA / JMS</span><div class="ft-desc">Real-time telemetry → CIM canonical transform → MDMS / DMS</div><span class="ft-dir" style="color:var(--eip-c)">↑</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--eip-c)">Siemens ESB</span><span class="ft-to" style="color:var(--api-c)">SAP IS-U</span><span class="ft-proto fp-eip">SAP PI/IDoc</span><div class="ft-desc">Daily meter read bulk transfer → billing document creation → FI-CA</div><span class="ft-dir" style="color:var(--eip-c)">↔</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--eda-c)">ksqlDB</span><span class="ft-to" style="color:var(--api-c)">MDMS Oracle</span><span class="ft-proto fp-eda">Kafka → JDBC</span><div class="ft-desc">VEE-validated billing.meter.validated → Oracle Utilities IDR write</div><span class="ft-dir" style="color:var(--eda-c)">↑</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--api-c)">API Gateway</span><span class="ft-to" style="color:var(--api-c)">Customer Portal</span><span class="ft-proto fp-api">REST / OAuth2</span><div class="ft-desc">Meter Reads API · IEC 61968-9 · JWT scoped · OpenAPI 3.1</div><span class="ft-dir" style="color:var(--api-c)">↔</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--api-c)">API Gateway</span><span class="ft-to" style="color:var(--api-c)">GIS / Analytics</span><span class="ft-proto fp-api">GraphQL / gRPC</span><div class="ft-desc">CIM asset queries · load profile queries · IEC 61970 topology</div><span class="ft-dir" style="color:var(--api-c)">↔</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--hip-c)">MuleSoft / Azure</span><span class="ft-to" style="color:var(--b2b-c)">B2B Gateway</span><span class="ft-proto fp-hip">AS2 / SFTP</span><div class="ft-desc">MSCONS settlement, EDIFACT switch flows to TSO/DSO/retailers</div><span class="ft-dir" style="color:var(--hip-c)">↔</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--hip-c)">HIP / DERMS</span><span class="ft-to" style="color:var(--b2b-c)">Market / EV Ops</span><span class="ft-proto fp-hip">OpenADR 3.0</span><div class="ft-desc">Demand response signals · VPP dispatch · flex market participation</div><span class="ft-dir" style="color:var(--hip-c)">↓</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--eda-c)">Kafka Connect S3</span><span class="ft-to" style="color:var(--cloud-c)">Data Lake</span><span class="ft-proto fp-eda">Kafka S3 Sink</span><div class="ft-desc">Historical archive → Databricks ML feature store → ODI ETL pipeline</div><span class="ft-dir" style="color:var(--eda-c)">↑</span></div>
+    <div class="ft-row"><span class="ft-from" style="color:var(--api-c)">All Systems</span><span class="ft-to" style="color:var(--db-c)">Kibana / Splunk</span><span class="ft-proto fp-api">OpenTelemetry</span><div class="ft-desc">Traces · metrics · logs → ELK · NERC CIP audit evidence</div><span class="ft-dir" style="color:var(--api-c)">↑</span></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-brand">Integration Architecture — Utility & Energy · Block Diagram</div>
+      <div class="footer-note">Standards: IEC 61968 · IEC 61970 · IEC 62325 · OpenAPI 3.1 · AsyncAPI 2.x · MQTT 5.0 · OpenADR 3.0 · MSCONS · EDIFACT · OPC-UA</div>
+      <div class="footer-note">Tools: Apache Kafka · Siemens ESB · MuleSoft · SAP PI/PO · Apigee · IBM MQ · Apache Camel · Azure Integration Services · Debezium · ksqlDB</div>
+    </div>
+    <div>
+      <div class="footer-tags">
+        <span class="footer-tag">#IntegrationArchitecture &nbsp;</span>
+        <span class="footer-tag">#APIDesign &nbsp;</span>
+        <span class="footer-tag">#EventDrivenArchitecture &nbsp;</span>
+        <span class="footer-tag">#ApacheKafka &nbsp;</span>
+        <span class="footer-tag">#IEC61968 &nbsp;</span>
+        <span class="footer-tag">#EnterpriseIntegration &nbsp;</span>
+        <span class="footer-tag">#UtilityTech &nbsp;</span>
+        <span class="footer-tag">#MuleSoft &nbsp;</span>
+        <span class="footer-tag">#AsyncAPI &nbsp;</span>
+        <span class="footer-tag">#EnterpriseArchitecture &nbsp;</span>
+        <span class="footer-tag">#SmartGrid</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
