@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero Trust Security Architecture — Utility OT/IT</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #060810;
+  --s1:      #0a0d18;
+  --s2:      #0f1422;
+  --border:  #1a2035;
+  --ink:     #e4eaf8;
+  --muted:   #3d4f6e;
+  --dim:     #1e2840;
+
+  /* ZT pillars */
+  --id-c:   #00c4ff; --id-bg: rgba(0,196,255,.07);
+  --dev-c:  #00e0a0; --dev-bg:rgba(0,224,160,.07);
+  --net-c:  #ff9d00; --net-bg:rgba(255,157,0,.07);
+  --app-c:  #b36aff; --app-bg:rgba(179,106,255,.07);
+  --data-c: #ff4d6a; --data-bg:rgba(255,77,106,.07);
+  --vis-c:  #4dffb0; --vis-bg: rgba(77,255,176,.07);
+
+  /* threat levels */
+  --crit:  #ff2d55;
+  --high:  #ff6b00;
+  --med:   #ffcc00;
+  --low:   #00e676;
+
+  --glow-blue: 0 0 24px rgba(0,196,255,.15);
+  --glow-red:  0 0 24px rgba(255,45,85,.15);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Outfit',sans-serif;
+  min-height:100vh;
+}
+
+/* animated grid */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(0,196,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,196,255,.018) 1px,transparent 1px);
+  background-size:40px 40px;
+  animation:gridDrift 20s linear infinite;
+}
+@keyframes gridDrift{from{background-position:0 0}to{background-position:40px 40px}}
+
+/* radial glow centre */
+body::after{
+  content:'';position:fixed;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  width:800px;height:800px;
+  background:radial-gradient(ellipse, rgba(0,196,255,.04) 0%, transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+.page{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:36px 28px 64px;}
+
+/* ── HEADER ── */
+header{
+  display:grid;grid-template-columns:1fr auto;
+  gap:20px;align-items:center;
+  margin-bottom:36px;
+  padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+.h-left{}
+.eyebrow{
+  font-family:'Space Mono',monospace;font-size:9.5px;
+  letter-spacing:3px;color:var(--id-c);text-transform:uppercase;
+  margin-bottom:10px;opacity:.8;
+}
+header h1{
+  font-size:clamp(22px,3.2vw,40px);
+  font-weight:900;letter-spacing:-1px;line-height:1.05;
+  color:var(--ink);
+}
+header h1 em{
+  font-style:normal;
+  background:linear-gradient(90deg,var(--id-c),var(--dev-c));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.h-sub{
+  font-family:'Space Mono',monospace;
+  font-size:10px;color:var(--muted);
+  letter-spacing:.5px;margin-top:8px;line-height:1.7;
+}
+.h-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
+.std-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;}
+.std{
+  font-family:'Space Mono',monospace;font-size:8.5px;
+  letter-spacing:1px;padding:3px 9px;border-radius:2px;
+  border:1px solid;text-transform:uppercase;
+}
+.std-blue{color:var(--id-c);border-color:rgba(0,196,255,.4);}
+.std-green{color:var(--dev-c);border-color:rgba(0,224,160,.4);}
+.std-amber{color:var(--net-c);border-color:rgba(255,157,0,.4);}
+.std-purple{color:var(--app-c);border-color:rgba(179,106,255,.4);}
+.std-red{color:var(--data-c);border-color:rgba(255,77,106,.4);}
+
+/* ── ZT PRINCIPLE BANNER ── */
+.zt-banner{
+  background:var(--s1);border:1px solid var(--border);
+  border-left:3px solid var(--id-c);
+  border-radius:5px;padding:12px 18px;
+  margin-bottom:24px;
+  display:flex;align-items:center;gap:16px;
+  font-family:'Space Mono',monospace;
+  font-size:11px;color:var(--id-c);
+  letter-spacing:.5px;
+  box-shadow:var(--glow-blue);
+}
+.zt-banner-text{flex:1;}
+.zt-tenets{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.zt-tenet{
+  font-size:9px;padding:2px 9px;border-radius:2px;
+  background:rgba(0,196,255,.08);border:1px solid rgba(0,196,255,.2);
+  color:var(--id-c);letter-spacing:.5px;
+}
+
+/* ── MAIN LAYOUT ── */
+.main-grid{
+  display:grid;
+  grid-template-columns: 1fr 260px;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+/* ── ZT ENGINE (centre) ── */
+.zt-engine{
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+}
+.engine-head{
+  padding:10px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  background:rgba(0,196,255,.04);
+}
+.engine-title{
+  font-size:12px;font-weight:700;letter-spacing:.3px;
+  text-transform:uppercase;color:var(--id-c);
+}
+.engine-sub{
+  font-family:'Space Mono',monospace;
+  font-size:9px;color:var(--muted);margin-left:auto;letter-spacing:.5px;
+}
+
+/* ── PILLARS ROW ── */
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;}
+
+.pillar{
+  border-radius:6px;border:1px solid;
+  overflow:hidden;
+  transition:transform .15s,box-shadow .15s;
+}
+.pillar:hover{transform:translateY(-2px);}
+
+.p-id  {background:var(--id-bg);  border-color:rgba(0,196,255,.25);}
+.p-dev {background:var(--dev-bg); border-color:rgba(0,224,160,.25);}
+.p-net {background:var(--net-bg); border-color:rgba(255,157,0,.25);}
+.p-app {background:var(--app-bg); border-color:rgba(179,106,255,.25);}
+.p-data{background:var(--data-bg);border-color:rgba(255,77,106,.25);}
+.p-vis {background:var(--vis-bg); border-color:rgba(77,255,176,.25);}
+
+.pillar-head{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.04);
+}
+.pillar-icon{font-size:16px;}
+.pillar-name{font-size:12px;font-weight:700;letter-spacing:-.1px;}
+.p-id   .pillar-name{color:var(--id-c);}
+.p-dev  .pillar-name{color:var(--dev-c);}
+.p-net  .pillar-name{color:var(--net-c);}
+.p-app  .pillar-name{color:var(--app-c);}
+.p-data .pillar-name{color:var(--data-c);}
+.p-vis  .pillar-name{color:var(--vis-c);}
+
+.pillar-body{padding:9px 11px;display:flex;flex-direction:column;gap:6px;}
+
+.cap{
+  border-radius:3px;padding:6px 8px 6px 26px;
+  position:relative;border:1px solid rgba(255,255,255,.05);
+  background:rgba(255,255,255,.025);
+  font-size:10.5px;font-weight:600;
+}
+.cap-icon{position:absolute;top:6px;left:6px;font-size:11px;}
+.cap-vendor{
+  font-family:'Space Mono',monospace;font-size:7.5px;
+  opacity:.4;letter-spacing:.5px;margin-bottom:1px;text-transform:uppercase;
+}
+.cap-desc{font-size:9px;color:var(--muted);margin-top:2px;font-weight:300;line-height:1.35;}
+.cap-proto{
+  font-family:'Space Mono',monospace;font-size:7.5px;
+  margin-top:4px;opacity:.55;letter-spacing:.3px;
+}
+
+.p-id   .cap{border-left:2px solid rgba(0,196,255,.4);}
+.p-dev  .cap{border-left:2px solid rgba(0,224,160,.4);}
+.p-net  .cap{border-left:2px solid rgba(255,157,0,.4);}
+.p-app  .cap{border-left:2px solid rgba(179,106,255,.4);}
+.p-data .cap{border-left:2px solid rgba(255,77,106,.4);}
+.p-vis  .cap{border-left:2px solid rgba(77,255,176,.4);}
+
+/* ── POLICY ENGINE SIDEBAR ── */
+.policy-sidebar{
+  display:flex;flex-direction:column;gap:8px;
+}
+
+.policy-engine{
+  background:var(--s1);border:1px solid var(--border);
+  border-top:2px solid var(--id-c);
+  border-radius:8px;overflow:hidden;
+  box-shadow:var(--glow-blue);
+}
+.pe-head{
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  background:rgba(0,196,255,.06);
+}
+.pe-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--id-c);letter-spacing:.5px;}
+.pe-sub{font-family:'Space Mono',monospace;font-size:8.5px;color:var(--muted);margin-top:2px;}
+.pe-body{padding:10px 12px;display:flex;flex-direction:column;gap:7px;}
+.pe-item{
+  border-radius:3px;padding:7px 9px;
+  background:var(--s2);border:1px solid var(--border);
+  font-size:10.5px;
+}
+.pe-item-label{
+  font-family:'Space Mono',monospace;font-size:8px;
+  letter-spacing:1px;opacity:.45;text-transform:uppercase;margin-bottom:2px;
+}
+.pe-item-val{font-size:11px;font-weight:600;color:var(--id-c);}
+.pe-item-desc{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.3;font-weight:300;}
+
+/* threat intel panel */
+.threat-panel{
+  background:var(--s1);border:1px solid var(--border);
+  border-top:2px solid var(--crit);
+  border-radius:8px;overflow:hidden;
+  box-shadow:var(--glow-red);
+}
+.tp-head{
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  background:rgba(255,45,85,.05);
+  display:flex;align-items:center;gap:8px;
+}
+.tp-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--crit);
+  animation:pulse-r 2s ease-in-out infinite;
+  box-shadow:0 0 8px var(--crit);
+}
+@keyframes pulse-r{0%,100%{opacity:1}50%{opacity:.4}}
+.tp-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--crit);letter-spacing:.5px;}
+.tp-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.threat{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:6px 8px;border-radius:3px;
+  background:var(--s2);border:1px solid var(--border);
+}
+.t-level{
+  font-family:'Space Mono',monospace;font-size:8px;
+  letter-spacing:.5px;padding:1px 6px;border-radius:2px;
+  text-transform:uppercase;flex-shrink:0;margin-top:1px;font-weight:700;
+}
+.t-crit{background:rgba(255,45,85,.2);color:var(--crit);border:1px solid rgba(255,45,85,.3);}
+.t-high{background:rgba(255,107,0,.2);color:var(--high);border:1px solid rgba(255,107,0,.3);}
+.t-med{background:rgba(255,204,0,.15);color:var(--med);border:1px solid rgba(255,204,0,.3);}
+.t-name{font-size:10.5px;font-weight:600;}
+.t-desc{font-size:9px;color:var(--muted);margin-top:1px;font-weight:300;line-height:1.3;}
+
+/* ── BOTTOM ROW ── */
+.bottom-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+/* network zones */
+.net-zones{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+}
+.section-head{
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.section-title{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+}
+.section-sub{
+  font-family:'Space Mono',monospace;
+  font-size:8.5px;color:var(--muted);margin-left:auto;
+}
+
+.nz-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.nz{
+  border-radius:4px;border:1px solid;
+  padding:7px 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.nz-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.nz-info{flex:1;}
+.nz-name{font-size:11px;font-weight:600;}
+.nz-desc{font-size:9px;color:var(--muted);margin-top:1px;font-weight:300;}
+.nz-tag{
+  font-family:'Space Mono',monospace;font-size:7.5px;
+  padding:1px 6px;border-radius:2px;border:1px solid;
+  flex-shrink:0;letter-spacing:.3px;
+}
+
+/* access policy table */
+.access-table{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+}
+.at-head{
+  display:grid;grid-template-columns:1fr 70px 70px 60px;
+  padding:7px 12px;background:rgba(255,255,255,.02);
+  font-family:'Space Mono',monospace;font-size:8.5px;
+  color:var(--muted);letter-spacing:.5px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);gap:6px;
+}
+.at-row{
+  display:grid;grid-template-columns:1fr 70px 70px 60px;
+  padding:7px 12px;border-top:1px solid rgba(255,255,255,.025);
+  font-size:10px;align-items:center;gap:6px;
+  transition:background .1s;
+}
+.at-row:hover{background:rgba(255,255,255,.02);}
+.at-user{font-size:10.5px;font-weight:600;}
+.at-badge{
+  font-family:'Space Mono',monospace;font-size:8px;
+  padding:2px 6px;border-radius:2px;text-align:center;
+  border:1px solid;letter-spacing:.3px;
+}
+.ab-mfa{color:var(--dev-c);border-color:rgba(0,224,160,.3);background:rgba(0,224,160,.08);}
+.ab-pam{color:var(--id-c);border-color:rgba(0,196,255,.3);background:rgba(0,196,255,.08);}
+.ab-jit{color:var(--net-c);border-color:rgba(255,157,0,.3);background:rgba(255,157,0,.08);}
+.ab-deny{color:var(--crit);border-color:rgba(255,45,85,.3);background:rgba(255,45,85,.08);}
+.ab-allow{color:var(--low);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.08);}
+.ab-cond{color:var(--med);border-color:rgba(255,204,0,.3);background:rgba(255,204,0,.08);}
+
+/* maturity */
+.maturity-panel{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+}
+.mat-body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.mat-item{}
+.mat-label{
+  display:flex;justify-content:space-between;
+  font-size:10.5px;font-weight:600;margin-bottom:5px;
+}
+.mat-pct{
+  font-family:'Space Mono',monospace;font-size:9px;
+  color:var(--muted);
+}
+.mat-bar{height:6px;background:var(--dim);border-radius:3px;overflow:hidden;}
+.mat-fill{height:100%;border-radius:3px;transition:width 1s ease;}
+
+/* ── ZT JOURNEY ── */
+.zt-journey{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+  margin-bottom:12px;
+  animation:fadeUp .5s ease .4s both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.journey-body{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;padding:0;
+}
+.jstep{
+  padding:14px 14px;
+  border-right:1px solid var(--border);
+  position:relative;
+}
+.jstep:last-child{border-right:none;}
+.jstep-num{
+  font-family:'Space Mono',monospace;
+  font-size:28px;font-weight:700;
+  line-height:1;margin-bottom:6px;opacity:.15;
+}
+.jstep.active .jstep-num{opacity:.9;}
+.jstep-phase{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:4px;
+}
+.jstep-name{font-size:13px;font-weight:700;letter-spacing:-.2px;margin-bottom:5px;}
+.jstep-items{display:flex;flex-direction:column;gap:3px;}
+.jstep-item{
+  font-size:9.5px;color:var(--muted);font-weight:300;
+  padding-left:10px;position:relative;line-height:1.35;
+}
+.jstep-item::before{
+  content:'›';position:absolute;left:0;
+  font-family:'Space Mono',monospace;opacity:.4;
+}
+.jstep-badge{
+  display:inline-block;margin-top:7px;
+  font-family:'Space Mono',monospace;font-size:8px;
+  padding:2px 8px;border-radius:2px;border:1px solid;
+  letter-spacing:.5px;text-transform:uppercase;
+}
+
+/* step colour themes */
+.js-1{border-top:2px solid var(--net-c);}
+.js-1 .jstep-num{color:var(--net-c);}
+.js-1 .jstep-phase{color:var(--net-c);}
+.js-1 .jstep-badge{color:var(--net-c);border-color:rgba(255,157,0,.3);}
+
+.js-2{border-top:2px solid var(--id-c);}
+.js-2 .jstep-num{color:var(--id-c);}
+.js-2 .jstep-phase{color:var(--id-c);}
+.js-2 .jstep-badge{color:var(--id-c);border-color:rgba(0,196,255,.3);}
+
+.js-3{border-top:2px solid var(--app-c);}
+.js-3 .jstep-num{color:var(--app-c);}
+.js-3 .jstep-phase{color:var(--app-c);}
+.js-3 .jstep-badge{color:var(--app-c);border-color:rgba(179,106,255,.3);}
+
+.js-4.active{border-top:2px solid var(--dev-c);}
+.js-4 .jstep-num{color:var(--dev-c);}
+.js-4 .jstep-phase{color:var(--dev-c);}
+.js-4 .jstep-badge{color:var(--dev-c);border-color:rgba(0,224,160,.3);}
+
+/* ── FOOTER ── */
+footer{
+  margin-top:20px;display:flex;flex-wrap:wrap;
+  justify-content:space-between;align-items:flex-end;gap:14px;
+  padding-top:16px;border-top:1px solid var(--border);
+}
+.footer-brand{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
+.footer-note{font-family:'Space Mono',monospace;font-size:8.5px;color:var(--muted);margin-top:3px;letter-spacing:.3px;line-height:1.6;}
+.footer-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;}
+.footer-tag{font-family:'Space Mono',monospace;font-size:8.5px;color:var(--muted);opacity:.55;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="h-left">
+      <div class="eyebrow">// Enterprise Architecture · Cybersecurity · Utility OT/IT</div>
+      <h1><em>Zero Trust</em> Security Architecture<br>Utility OT / IT</h1>
+      <div class="h-sub">
+        NIST SP 800-207 · IEC 62443 · NERC CIP · CISA ZTA · ISA/IEC 62443-3-3<br>
+        ArchiMate 3.1 · TOGAF ADM Phase C · Target State 2025–2027
+      </div>
+    </div>
+    <div class="h-right">
+      <div class="std-row">
+        <span class="std std-blue">NIST SP 800-207</span>
+        <span class="std std-amber">IEC 62443</span>
+        <span class="std std-red">NERC CIP</span>
+        <span class="std std-green">CISA ZTA</span>
+        <span class="std std-purple">ISO 27001</span>
+      </div>
+      <div class="std-row">
+        <span class="std std-blue">NIST CSF 2.0</span>
+        <span class="std std-amber">IEC 62351</span>
+        <span class="std std-green">TOGAF ADM</span>
+        <span class="std std-purple">ArchiMate 3.1</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ZT PRINCIPLE BANNER -->
+  <div class="zt-banner">
+    <span style="font-size:22px">🔐</span>
+    <div class="zt-banner-text">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:5px;">CORE PRINCIPLE — "NEVER TRUST, ALWAYS VERIFY"</div>
+      <div class="zt-tenets">
+        <span class="zt-tenet">Verify Explicitly</span>
+        <span class="zt-tenet">Use Least-Privilege Access</span>
+        <span class="zt-tenet">Assume Breach</span>
+        <span class="zt-tenet">Continuous Validation</span>
+        <span class="zt-tenet">Micro-Segmentation</span>
+        <span class="zt-tenet">Data-Centric Security</span>
+        <span class="zt-tenet">Contextual Access Decisions</span>
+        <span class="zt-tenet">No Implicit Trust by Network Location</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- ZT PILLARS ENGINE -->
+    <div class="zt-engine">
+      <div class="engine-head">
+        <span style="font-size:18px">⚡</span>
+        <span class="engine-title">Zero Trust Pillars — Utility OT/IT Controls</span>
+        <span class="engine-sub">CISA ZTA 5 Pillars · IEC 62443 SR Mapping</span>
+      </div>
+      <div class="pillars">
+
+        <!-- IDENTITY -->
+        <div class="pillar p-id">
+          <div class="pillar-head">
+            <span class="pillar-icon">🪪</span>
+            <span class="pillar-name">Identity</span>
+          </div>
+          <div class="pillar-body">
+            <div class="cap"><div class="cap-icon">🏢</div><div class="cap-vendor">Microsoft</div>Identity: Azure AD Entra ID<div class="cap-desc">Unified IAM; conditional access; risk-based sign-in policies for IT & OT users</div><div class="cap-proto">OIDC · SAML 2.0 · SCIM</div></div>
+            <div class="cap"><div class="cap-icon">🔑</div><div class="cap-vendor">CyberArk / BeyondTrust</div>Privileged Access Mgmt (PAM)<div class="cap-desc">Vault for OT/IT admin creds; JIT access; full session recording & audit trail</div><div class="cap-proto">PAM API · SSH · RDP</div></div>
+            <div class="cap"><div class="cap-icon">📱</div><div class="cap-vendor">Duo / Microsoft</div>MFA — All OT Remote Access<div class="cap-desc">TOTP/FIDO2 enforced for every SCADA, EMS, DCS remote connection</div><div class="cap-proto">FIDO2 · TOTP</div></div>
+            <div class="cap"><div class="cap-icon">🤖</div><div class="cap-vendor">Thales / Entrust</div>Non-Human Identity (NHI)<div class="cap-desc">X.509 certs for IEDs, RTUs, meters; PKI lifecycle; automated rotation</div><div class="cap-proto">PKCS#11 · EST · X.509</div></div>
+          </div>
+        </div>
+
+        <!-- DEVICES -->
+        <div class="pillar p-dev">
+          <div class="pillar-head">
+            <span class="pillar-icon">💻</span>
+            <span class="pillar-name">Devices</span>
+          </div>
+          <div class="pillar-body">
+            <div class="cap"><div class="cap-icon">🔍</div><div class="cap-vendor">Claroty / Nozomi</div>OT Asset Discovery & Inventory<div class="cap-desc">Passive fingerprinting; full OT asset register; firmware version tracking</div><div class="cap-proto">Passive / SPAN · DPI</div></div>
+            <div class="cap"><div class="cap-icon">🛡</div><div class="cap-vendor">Microsoft Defender / Claroty</div>Endpoint Detection (EDR/XDR)<div class="cap-desc">IT EDR + OT-safe passive monitoring; behaviour-based threat detection</div><div class="cap-proto">WMI · ETW · Sysmon</div></div>
+            <div class="cap"><div class="cap-icon">📋</div><div class="cap-vendor">Tanium / Flexera</div>Device Health & Compliance<div class="cap-desc">Patch posture, config compliance, software inventory; access denied if non-compliant</div><div class="cap-proto">OVAL · SCAP</div></div>
+            <div class="cap"><div class="cap-icon">🔒</div><div class="cap-vendor">Vendor-agnostic</div>Device Attestation (TPM / UEFI)<div class="cap-desc">Hardware root of trust; measured boot; TPM 2.0 for IT endpoints</div><div class="cap-proto">TPM 2.0 · TCG</div></div>
+          </div>
+        </div>
+
+        <!-- NETWORK -->
+        <div class="pillar p-net">
+          <div class="pillar-head">
+            <span class="pillar-icon">🌐</span>
+            <span class="pillar-name">Network</span>
+          </div>
+          <div class="pillar-body">
+            <div class="cap"><div class="cap-icon">🧱</div><div class="cap-vendor">Palo Alto / Fortinet</div>NGFW & Micro-Segmentation<div class="cap-desc">Application-layer firewall; ICS DPI; Purdue zone enforcement; deny-all default</div><div class="cap-proto">TLS · ICS DPI</div></div>
+            <div class="cap"><div class="cap-icon">🔀</div><div class="cap-vendor">Zscaler / Cloudflare</div>Zero Trust Network Access (ZTNA)<div class="cap-desc">Replace VPN; identity + device posture gating; no implicit network trust</div><div class="cap-proto">ZTNA · mTLS</div></div>
+            <div class="cap"><div class="cap-icon">📡</div><div class="cap-vendor">Waterfall Security</div>Data Diode — OT→IT<div class="cap-desc">Hardware-enforced unidirectional gateway; physics-based security; OT historian replication</div><div class="cap-proto">Unidirectional HW</div></div>
+            <div class="cap"><div class="cap-icon">🔐</div><div class="cap-vendor">Cisco ISE / Aruba</div>Network Access Control (NAC)<div class="cap-desc">802.1X port auth; device posture check; auto VLAN assignment; quarantine non-compliant</div><div class="cap-proto">802.1X · RADIUS</div></div>
+          </div>
+        </div>
+
+        <!-- APPLICATIONS -->
+        <div class="pillar p-app">
+          <div class="pillar-head">
+            <span class="pillar-icon">🧩</span>
+            <span class="pillar-name">Applications</span>
+          </div>
+          <div class="pillar-body">
+            <div class="cap"><div class="cap-icon">🌐</div><div class="cap-vendor">Apigee / Kong</div>API Gateway & mTLS<div class="cap-desc">All app-to-app via managed API; mutual TLS; OAuth2 scoped tokens; rate limiting</div><div class="cap-proto">OAuth2 · mTLS · OAS3</div></div>
+            <div class="cap"><div class="cap-icon">🏭</div><div class="cap-vendor">OPC Foundation</div>OPC-UA Secure Channel<div class="cap-desc">Certificate-based auth between SCADA/DCS/HMI; encrypted sessions; sign+encrypt</div><div class="cap-proto">OPC-UA Security</div></div>
+            <div class="cap"><div class="cap-icon">🛡</div><div class="cap-vendor">Imperva / F5</div>WAF — Web App Firewall<div class="cap-desc">OWASP Top 10 protection for customer portal, DERMS API, self-service web apps</div><div class="cap-proto">HTTPS · TLS 1.3</div></div>
+            <div class="cap"><div class="cap-icon">🔁</div><div class="cap-vendor">HashiCorp Vault</div>Secrets Management<div class="cap-desc">Dynamic secrets; auto-rotating DB credentials; Kubernetes secrets injection</div><div class="cap-proto">Vault API · mTLS</div></div>
+          </div>
+        </div>
+
+        <!-- DATA -->
+        <div class="pillar p-data">
+          <div class="pillar-head">
+            <span class="pillar-icon">🗄</span>
+            <span class="pillar-name">Data</span>
+          </div>
+          <div class="pillar-body">
+            <div class="cap"><div class="cap-icon">🏷</div><div class="cap-vendor">Microsoft Purview</div>Data Classification & DLP<div class="cap-desc">Auto-classify OT configs, customer PII, grid topology data; DLP policy enforcement</div><div class="cap-proto">MIP Labels · DLP</div></div>
+            <div class="cap"><div class="cap-icon">🔒</div><div class="cap-vendor">Thales / Vormetric</div>Encryption at Rest & Transit<div class="cap-desc">AES-256 DB encryption; TLS 1.3 transit; HSM key management; field-level encryption</div><div class="cap-proto">AES-256 · TLS 1.3</div></div>
+            <div class="cap"><div class="cap-icon">📜</div><div class="cap-vendor">Oracle / Imperva</div>Database Activity Monitor<div class="cap-desc">All DB queries audited; anomalous access alerts; DAM for Oracle MDMS, SAP</div><div class="cap-proto">DAM · SQL Audit</div></div>
+            <div class="cap"><div class="cap-icon">🗑</div><div class="cap-vendor">Varonis / BigID</div>Data Access Governance<div class="cap-desc">Least-privilege data access; orphaned access detection; GDPR / NERC CIP evidence</div><div class="cap-proto">RBAC · ABAC</div></div>
+          </div>
+        </div>
+
+        <!-- VISIBILITY -->
+        <div class="pillar p-vis">
+          <div class="pillar-head">
+            <span class="pillar-icon">👁</span>
+            <span class="pillar-name">Visibility &amp; Analytics</span>
+          </div>
+          <div class="pillar-body">
+            <div class="cap"><div class="cap-icon">🛡</div><div class="cap-vendor">Splunk</div>SIEM / SOAR Platform<div class="cap-desc">IT+OT unified security events; automated playbooks; NERC CIP evidence collection</div><div class="cap-proto">Splunk HEC · REST</div></div>
+            <div class="cap"><div class="cap-icon">🏭</div><div class="cap-vendor">Dragos / Claroty</div>OT Threat Detection Platform<div class="cap-desc">ICS-specific signatures; protocol behavioural analysis; threat hunting in OT</div><div class="cap-proto">Passive DPI · IDS</div></div>
+            <div class="cap"><div class="cap-icon">📊</div><div class="cap-vendor">Microsoft Sentinel</div>UEBA — User & Entity Analytics<div class="cap-desc">ML-based anomaly detection; impossible travel; lateral movement detection</div><div class="cap-proto">KQL · REST API</div></div>
+            <div class="cap"><div class="cap-icon">🔎</div><div class="cap-vendor">Elastic / Kibana</div>Observability & Audit Logging<div class="cap-desc">Centralised audit log; 13-month retention; NERC CIP-007 R4 log review automation</div><div class="cap-proto">ECS · Beats</div></div>
+          </div>
+        </div>
+
+      </div><!-- /pillars -->
+    </div><!-- /zt-engine -->
+
+    <!-- POLICY ENGINE + THREAT SIDEBAR -->
+    <div class="policy-sidebar">
+
+      <div class="policy-engine">
+        <div class="pe-head">
+          <div class="pe-title">Policy Decision Point (PDP)</div>
+          <div class="pe-sub">Continuous access evaluation engine</div>
+        </div>
+        <div class="pe-body">
+          <div class="pe-item"><div class="pe-item-label">Engine</div><div class="pe-item-val">Azure AD CA + Entra PIM</div><div class="pe-item-desc">Real-time access decisions based on identity, device, location, risk score</div></div>
+          <div class="pe-item"><div class="pe-item-label">OT Policy</div><div class="pe-item-val">CyberArk PAM Engine</div><div class="pe-item-desc">JIT credentials for all OT system access; zero standing privileges</div></div>
+          <div class="pe-item"><div class="pe-item-label">Signals In</div><div class="pe-item-val" style="color:var(--dev-c);font-size:10px;">Identity · Device Health · Location · Time · Risk Score · Behaviour</div><div class="pe-item-desc">All signals evaluated on every access request</div></div>
+          <div class="pe-item"><div class="pe-item-label">Enforcement</div><div class="pe-item-val" style="color:var(--net-c);">Policy Enforcement Points (PEP)</div><div class="pe-item-desc">Firewall · ZTNA · API GW · NAC · PAM enforce PDP decisions</div></div>
+          <div class="pe-item"><div class="pe-item-label">Audit</div><div class="pe-item-val" style="color:var(--vis-c);">Splunk SIEM · Sentinel</div><div class="pe-item-desc">Every access decision logged, timestamped, immutable</div></div>
+          <div class="pe-item"><div class="pe-item-label">OT Protocol</div><div class="pe-item-val" style="color:var(--app-c);">IEC 62351 + OPC-UA</div><div class="pe-item-desc">Certificate-based auth for all OT protocol sessions</div></div>
+        </div>
+      </div>
+
+      <div class="threat-panel">
+        <div class="tp-head">
+          <div class="tp-dot"></div>
+          <div class="tp-title">Utility Threat Landscape</div>
+        </div>
+        <div class="tp-body">
+          <div class="threat"><span class="t-level t-crit">CRIT</span><div><div class="t-name">Nation-State ICS Attack</div><div class="t-desc">Volt Typhoon / SANDWORM targeting grid SCADA — living off the land</div></div></div>
+          <div class="threat"><span class="t-level t-crit">CRIT</span><div><div class="t-name">Ransomware — OT Pivot</div><div class="t-desc">IT ransomware laterally moving into OT network via unprotected IT/OT boundary</div></div></div>
+          <div class="threat"><span class="t-level t-high">HIGH</span><div><div class="t-name">Supply Chain Compromise</div><div class="t-desc">Malicious firmware in IEDs / meters; compromised vendor remote access</div></div></div>
+          <div class="threat"><span class="t-level t-high">HIGH</span><div><div class="t-name">Spear Phishing → SCADA</div><div class="t-desc">Credential theft targeting control room operators; MFA bypass attempts</div></div></div>
+          <div class="threat"><span class="t-level t-med">MED</span><div><div class="t-name">Insider Threat — OT Access</div><div class="t-desc">Privileged contractor / operator misuse; lateral movement via shared creds</div></div></div>
+          <div class="threat"><span class="t-level t-med">MED</span><div><div class="t-name">AMI Meter Tampering</div><div class="t-desc">Physical / logical manipulation of smart meters; energy theft; false readings</div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /main-grid -->
+
+  <!-- BOTTOM ROW -->
+  <div class="bottom-row">
+
+    <!-- NETWORK ZONES -->
+    <div class="net-zones">
+      <div class="section-head">
+        <span style="font-size:15px">🌐</span>
+        <span class="section-title" style="color:var(--net-c);">ZT Network Segments</span>
+        <span class="section-sub">Micro-segmentation map</span>
+      </div>
+      <div class="nz-body">
+        <div class="nz" style="border-color:rgba(179,106,255,.2);background:rgba(179,106,255,.05)"><div class="nz-dot" style="background:var(--app-c)"></div><div class="nz-info"><div class="nz-name" style="color:var(--app-c)">Enterprise / Cloud (L5)</div><div class="nz-desc">SAP, Azure AD, CRM, M365 — internet-facing</div></div><span class="nz-tag" style="color:var(--app-c);border-color:rgba(179,106,255,.3)">SL-1</span></div>
+        <div class="nz" style="border-color:rgba(0,196,255,.2);background:rgba(0,196,255,.05)"><div class="nz-dot" style="background:var(--id-c)"></div><div class="nz-info"><div class="nz-name" style="color:var(--id-c)">Site IT / MDMS (L4)</div><div class="nz-desc">AMI HES, PI Historian, MDMS, Siemens ESB</div></div><span class="nz-tag" style="color:var(--id-c);border-color:rgba(0,196,255,.3)">SL-2</span></div>
+        <div class="nz" style="border-color:rgba(255,45,85,.35);background:rgba(255,45,85,.06)"><div class="nz-dot" style="background:var(--crit)"></div><div class="nz-info"><div class="nz-name" style="color:var(--crit)">Industrial DMZ (iDMZ)</div><div class="nz-desc">Data diode, Kafka relay, jump server, SIEM collector</div></div><span class="nz-tag" style="color:var(--crit);border-color:rgba(255,45,85,.3)">Conduit</span></div>
+        <div class="nz" style="border-color:rgba(0,224,160,.2);background:rgba(0,224,160,.05)"><div class="nz-dot" style="background:var(--dev-c)"></div><div class="nz-info"><div class="nz-name" style="color:var(--dev-c)">OT Operations (L3)</div><div class="nz-desc">SCADA/EMS, DMS/OMS, DERMS, OT SOC</div></div><span class="nz-tag" style="color:var(--dev-c);border-color:rgba(0,224,160,.3)">SL-3</span></div>
+        <div class="nz" style="border-color:rgba(255,157,0,.2);background:rgba(255,157,0,.05)"><div class="nz-dot" style="background:var(--net-c)"></div><div class="nz-info"><div class="nz-name" style="color:var(--net-c)">Control Zone (L2)</div><div class="nz-desc">HMI, DCS, EWS, alarms, SIS (hardwired)</div></div><span class="nz-tag" style="color:var(--net-c);border-color:rgba(255,157,0,.3)">SL-3</span></div>
+        <div class="nz" style="border-color:rgba(255,77,106,.2);background:rgba(255,77,106,.05)"><div class="nz-dot" style="background:var(--data-c)"></div><div class="nz-info"><div class="nz-name" style="color:var(--data-c)">Field / Physical (L0–L1)</div><div class="nz-desc">PLCs, RTUs, IEDs, smart meters, sensors — no IP to L0</div></div><span class="nz-tag" style="color:var(--data-c);border-color:rgba(255,77,106,.3)">SL-4</span></div>
+      </div>
+    </div>
+
+    <!-- ACCESS POLICY TABLE -->
+    <div class="access-table">
+      <div class="section-head">
+        <span style="font-size:15px">📋</span>
+        <span class="section-title" style="color:var(--app-c);">Access Policy Matrix</span>
+        <span class="section-sub">ZT enforcement rules</span>
+      </div>
+      <div class="at-head"><span>User / Entity</span><span>Auth</span><span>Access</span><span>OT Reach</span></div>
+      <div class="at-row"><div><div class="at-user">Grid Operator</div><div style="font-size:9px;color:var(--muted)">Control room staff</div></div><span class="at-badge ab-mfa">MFA+SSO</span><span class="at-badge ab-allow">Allow</span><span class="at-badge ab-cond">L3 Only</span></div>
+      <div class="at-row"><div><div class="at-user">OT Vendor (Remote)</div><div style="font-size:9px;color:var(--muted)">3rd-party maintenance</div></div><span class="at-badge ab-pam">PAM+JIT</span><span class="at-badge ab-cond">Cond.</span><span class="at-badge ab-jit">JIT L2</span></div>
+      <div class="at-row"><div><div class="at-user">Field Engineer</div><div style="font-size:9px;color:var(--muted)">On-site maintenance</div></div><span class="at-badge ab-mfa">MFA+Cert</span><span class="at-badge ab-allow">Allow</span><span class="at-badge ab-cond">L1–L2</span></div>
+      <div class="at-row"><div><div class="at-user">IT Admin</div><div style="font-size:9px;color:var(--muted)">Enterprise IT</div></div><span class="at-badge ab-pam">PAM+MFA</span><span class="at-badge ab-allow">Allow</span><span class="at-badge ab-deny">No OT</span></div>
+      <div class="at-row"><div><div class="at-user">IED / RTU Device</div><div style="font-size:9px;color:var(--muted)">Non-human identity</div></div><span class="at-badge ab-pam">X.509 Cert</span><span class="at-badge ab-allow">Allow</span><span class="at-badge ab-allow">L1 Zone</span></div>
+      <div class="at-row"><div><div class="at-user">Unknown Device</div><div style="font-size:9px;color:var(--muted)">Unregistered endpoint</div></div><span class="at-badge ab-deny">None</span><span class="at-badge ab-deny">Deny</span><span class="at-badge ab-deny">Blocked</span></div>
+      <div class="at-row"><div><div class="at-user">SCADA Application</div><div style="font-size:9px;color:var(--muted)">Service account</div></div><span class="at-badge ab-pam">mTLS+Vault</span><span class="at-badge ab-allow">Allow</span><span class="at-badge ab-cond">L2–L3</span></div>
+      <div class="at-row"><div><div class="at-user">External / Internet</div><div style="font-size:9px;color:var(--muted)">Third-party / API</div></div><span class="at-badge ab-pam">OAuth2+mTLS</span><span class="at-badge ab-cond">API GW</span><span class="at-badge ab-deny">No OT</span></div>
+    </div>
+
+    <!-- ZT MATURITY -->
+    <div class="maturity-panel">
+      <div class="section-head">
+        <span style="font-size:15px">📈</span>
+        <span class="section-title" style="color:var(--vis-c);">ZT Maturity — Target vs Current</span>
+        <span class="section-sub">CISA ZTM Model</span>
+      </div>
+      <div class="mat-body">
+        <div class="mat-item">
+          <div class="mat-label"><span style="color:var(--id-c)">Identity</span><span class="mat-pct">Target: 90%</span></div>
+          <div class="mat-bar"><div class="mat-fill" style="width:90%;background:linear-gradient(90deg,var(--id-c),rgba(0,196,255,.4))"></div></div>
+        </div>
+        <div class="mat-item">
+          <div class="mat-label"><span style="color:var(--dev-c)">Devices</span><span class="mat-pct">Target: 80%</span></div>
+          <div class="mat-bar"><div class="mat-fill" style="width:80%;background:linear-gradient(90deg,var(--dev-c),rgba(0,224,160,.4))"></div></div>
+        </div>
+        <div class="mat-item">
+          <div class="mat-label"><span style="color:var(--net-c)">Network</span><span class="mat-pct">Target: 85%</span></div>
+          <div class="mat-bar"><div class="mat-fill" style="width:85%;background:linear-gradient(90deg,var(--net-c),rgba(255,157,0,.4))"></div></div>
+        </div>
+        <div class="mat-item">
+          <div class="mat-label"><span style="color:var(--app-c)">Applications</span><span class="mat-pct">Target: 75%</span></div>
+          <div class="mat-bar"><div class="mat-fill" style="width:75%;background:linear-gradient(90deg,var(--app-c),rgba(179,106,255,.4))"></div></div>
+        </div>
+        <div class="mat-item">
+          <div class="mat-label"><span style="color:var(--data-c)">Data</span><span class="mat-pct">Target: 70%</span></div>
+          <div class="mat-bar"><div class="mat-fill" style="width:70%;background:linear-gradient(90deg,var(--data-c),rgba(255,77,106,.4))"></div></div>
+        </div>
+        <div class="mat-item">
+          <div class="mat-label"><span style="color:var(--vis-c)">Visibility</span><span class="mat-pct">Target: 95%</span></div>
+          <div class="mat-bar"><div class="mat-fill" style="width:95%;background:linear-gradient(90deg,var(--vis-c),rgba(77,255,176,.4))"></div></div>
+        </div>
+        <div class="mat-item" style="margin-top:4px;">
+          <div class="mat-label"><span style="color:var(--muted);font-size:9px;">OT-Specific Controls (IEC 62443)</span><span class="mat-pct">65%</span></div>
+          <div class="mat-bar"><div class="mat-fill" style="width:65%;background:linear-gradient(90deg,#ff9d00,rgba(255,157,0,.3))"></div></div>
+        </div>
+        <div class="mat-item">
+          <div class="mat-label"><span style="color:var(--muted);font-size:9px;">NERC CIP Compliance</span><span class="mat-pct">88%</span></div>
+          <div class="mat-bar"><div class="mat-fill" style="width:88%;background:linear-gradient(90deg,#ff4d6a,rgba(255,77,106,.3))"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZT JOURNEY -->
+  <div class="zt-journey">
+    <div class="section-head" style="padding:10px 16px;">
+      <span style="font-size:16px">🗺</span>
+      <span class="section-title" style="color:var(--ink);font-size:12px;">Zero Trust Adoption Journey — Utility Roadmap 2025–2027</span>
+      <span class="section-sub">CISA ZTM: Traditional → Advanced → Optimal</span>
+    </div>
+    <div class="journey-body">
+      <div class="jstep js-1">
+        <div class="jstep-num">01</div>
+        <div class="jstep-phase">Phase 1 · Q1–Q2 2025</div>
+        <div class="jstep-name">Foundation</div>
+        <div class="jstep-items">
+          <div class="jstep-item">MFA enforced — all IT admin & remote access</div>
+          <div class="jstep-item">PAM deployed — CyberArk for OT privileged accounts</div>
+          <div class="jstep-item">OT asset inventory via Claroty passive discovery</div>
+          <div class="jstep-item">Purdue zone firewalls reviewed & tightened</div>
+          <div class="jstep-item">SIEM onboarding — Splunk IT+OT log sources</div>
+        </div>
+        <span class="jstep-badge">In Progress</span>
+      </div>
+      <div class="jstep js-2">
+        <div class="jstep-num">02</div>
+        <div class="jstep-phase">Phase 2 · Q3 2025–Q1 2026</div>
+        <div class="jstep-name">Identity-First ZT</div>
+        <div class="jstep-items">
+          <div class="jstep-item">ZTNA replacing legacy VPN for all OT remote access</div>
+          <div class="jstep-item">Device health check — gating on endpoint compliance</div>
+          <div class="jstep-item">IED/RTU X.509 certificate deployment via OT PKI</div>
+          <div class="jstep-item">JIT access model — zero standing OT privileges</div>
+          <div class="jstep-item">Data classification — MDMS, PI, GIS data labelled</div>
+        </div>
+        <span class="jstep-badge">Planned</span>
+      </div>
+      <div class="jstep js-3">
+        <div class="jstep-num">03</div>
+        <div class="jstep-phase">Phase 3 · Q2–Q4 2026</div>
+        <div class="jstep-name">Micro-Segmentation</div>
+        <div class="jstep-items">
+          <div class="jstep-item">OT cell-level micro-segmentation — per asset class</div>
+          <div class="jstep-item">OPC-UA sign+encrypt enforced L2↔L3</div>
+          <div class="jstep-item">UEBA deployed — Sentinel ML anomaly detection</div>
+          <div class="jstep-item">Data diode for all historian replication paths</div>
+          <div class="jstep-item">SOAR playbooks — automated OT incident response</div>
+        </div>
+        <span class="jstep-badge">Future</span>
+      </div>
+      <div class="jstep js-4 active">
+        <div class="jstep-num">04</div>
+        <div class="jstep-phase">Phase 4 · 2027</div>
+        <div class="jstep-name">Optimal ZT</div>
+        <div class="jstep-items">
+          <div class="jstep-item">Continuous adaptive trust — real-time risk scoring</div>
+          <div class="jstep-item">AI-driven threat detection across IT+OT telemetry</div>
+          <div class="jstep-item">Automated policy enforcement — no manual approvals</div>
+          <div class="jstep-item">Full IEC 62443 SL-3 across all OT zones achieved</div>
+          <div class="jstep-item">NERC CIP audit-ready — continuous compliance evidence</div>
+        </div>
+        <span class="jstep-badge">Target State</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-brand">Zero Trust Security Architecture · Utility OT/IT</div>
+      <div class="footer-note">Standards: NIST SP 800-207 · CISA ZTA · IEC 62443 · IEC 62351 · NERC CIP-002–014 · ISO/IEC 27001 · NIST CSF 2.0</div>
+      <div class="footer-note">Framework: ArchiMate® 3.1 · TOGAF ADM Phase C · Technology & Security Architecture Viewpoint</div>
+    </div>
+    <div>
+      <div class="footer-tags">
+        <span class="footer-tag">#ZeroTrust &nbsp;</span>
+        <span class="footer-tag">#OTSecurity &nbsp;</span>
+        <span class="footer-tag">#IEC62443 &nbsp;</span>
+        <span class="footer-tag">#NERCCIP &nbsp;</span>
+        <span class="footer-tag">#CyberSecurity &nbsp;</span>
+        <span class="footer-tag">#ICSecurity &nbsp;</span>
+        <span class="footer-tag">#NIST &nbsp;</span>
+        <span class="footer-tag">#UtilityTech &nbsp;</span>
+        <span class="footer-tag">#SmartGrid &nbsp;</span>
+        <span class="footer-tag">#EnterpriseArchitecture &nbsp;</span>
+        <span class="footer-tag">#TOGAF &nbsp;</span>
+        <span class="footer-tag">#ArchiMate</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

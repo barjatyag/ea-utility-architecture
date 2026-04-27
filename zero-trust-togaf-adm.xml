@@ -1,0 +1,740 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================
+  TOGAF ADM Architecture Repository — XML Export
+  Artefact  : Zero Trust Security Architecture — Utility OT/IT
+  Standard  : TOGAF 10 / ADM Phase C (Technology Architecture)
+  Format    : TOGAF Architecture Repository XML Schema
+  Author    : Enterprise Architecture Office
+  Created   : 2025
+  Version   : 1.0
+  Standards : NIST SP 800-207 · IEC 62443 · NERC CIP · CISA ZTA
+              ISO/IEC 27001 · ArchiMate 3.1 · NIST CSF 2.0
+  ============================================================
+-->
+<ArchitectureRepository
+  xmlns="http://www.opengroup.org/togaf/repository"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xsi:schemaLocation="http://www.opengroup.org/togaf/repository togaf-repository.xsd"
+  version="10.0"
+  id="REPO-ZTA-UTL-001">
+
+  <!-- ============================================================
+       ARCHITECTURE LANDSCAPE METADATA
+  ============================================================ -->
+  <RepositoryMetadata>
+    <dc:title>Zero Trust Security Architecture — Utility OT/IT</dc:title>
+    <dc:description>
+      Enterprise-grade Zero Trust Security Architecture for a multi-utility organisation
+      covering IT and OT domains. Aligned to CISA ZTA five pillars: Identity, Devices,
+      Network, Applications, Data, and Visibility. Maps to IEC 62443 security levels,
+      NERC CIP requirements, and NIST SP 800-207 Zero Trust principles.
+    </dc:description>
+    <dc:creator>Enterprise Architecture Office</dc:creator>
+    <dc:date>2025-01-01</dc:date>
+    <dc:subject>Zero Trust · OT Security · IEC 62443 · NERC CIP · Utility</dc:subject>
+    <dc:type>Architecture Document</dc:type>
+    <dc:format>TOGAF ADM XML</dc:format>
+    <dc:rights>Enterprise Architecture Office — Internal Use</dc:rights>
+    <ArchitectureVersion>1.0</ArchitectureVersion>
+    <ArchitectureStatus>Approved Target State</ArchitectureStatus>
+    <ADMPhase>Phase C — Technology Architecture</ADMPhase>
+    <Viewpoint>Security · Technology</Viewpoint>
+    <ApprovalAuthority>Architecture Review Board</ApprovalAuthority>
+    <ReviewDate>2025-06-01</ReviewDate>
+  </RepositoryMetadata>
+
+  <!-- ============================================================
+       ARCHITECTURE PRINCIPLES
+  ============================================================ -->
+  <ArchitecturePrinciples>
+
+    <Principle id="PRIN-ZT-001">
+      <Name>Never Trust, Always Verify</Name>
+      <Statement>
+        No user, device, or network location is implicitly trusted. Every access request
+        must be authenticated, authorised, and continuously validated regardless of
+        network origin — internal or external.
+      </Statement>
+      <Rationale>
+        Traditional perimeter-based security is insufficient against modern threats
+        targeting utility OT/IT environments including nation-state actors and ransomware.
+      </Rationale>
+      <Implications>
+        All systems must support identity-based access controls. Legacy systems without
+        identity capabilities require compensating controls or replacement.
+      </Implications>
+      <References>NIST SP 800-207 · CISA ZTA Pillar 1</References>
+    </Principle>
+
+    <Principle id="PRIN-ZT-002">
+      <Name>Least Privilege Access</Name>
+      <Statement>
+        Users, devices, and applications are granted the minimum level of access required
+        to perform their function. Privileged access is time-limited (JIT) and
+        requires explicit approval workflows.
+      </Statement>
+      <Rationale>
+        Minimises blast radius of a compromised credential or device, particularly
+        critical for OT environments where a single compromised account could affect
+        grid operations.
+      </Rationale>
+      <Implications>
+        PAM solution required for all OT privileged access. Zero standing privileges
+        policy must be enforced. RBAC and ABAC models required across all systems.
+      </Implications>
+      <References>NIST SP 800-207 · IEC 62443-3-3 SR 1.3 · NERC CIP-007</References>
+    </Principle>
+
+    <Principle id="PRIN-ZT-003">
+      <Name>Assume Breach</Name>
+      <Statement>
+        Architecture is designed with the assumption that a breach has already occurred
+        or will occur. Containment, detection, and response capabilities are as important
+        as prevention.
+      </Statement>
+      <Rationale>
+        Utility organisations are high-value targets for sophisticated adversaries.
+        Volt Typhoon, SANDWORM, and similar nation-state actors have demonstrated
+        capability to maintain persistent access within OT environments.
+      </Rationale>
+      <Implications>
+        Micro-segmentation mandatory. Continuous monitoring required across all zones.
+        Incident response playbooks must be OT-specific and regularly exercised.
+      </Implications>
+      <References>NIST SP 800-207 · IEC 62443-2-1 · NERC CIP-008</References>
+    </Principle>
+
+    <Principle id="PRIN-ZT-004">
+      <Name>Verify Explicitly — Contextual Access Decisions</Name>
+      <Statement>
+        Access decisions must incorporate all available signals: identity, device health,
+        location, time, risk score, and behavioural context. No single factor is
+        sufficient in isolation.
+      </Statement>
+      <Rationale>
+        Multi-factor, contextual access decisions significantly reduce the risk of
+        credential theft and account compromise attacks targeting utility control systems.
+      </Rationale>
+      <Implications>
+        Policy Decision Point (PDP) must aggregate all signals. Conditional access
+        policies required in IAM platform. UEBA required for behavioural baselining.
+      </Implications>
+      <References>NIST SP 800-207 · CISA ZTM · IEC 62443-3-3 SR 1.1</References>
+    </Principle>
+
+    <Principle id="PRIN-ZT-005">
+      <Name>OT-IT Separation with Controlled Conduits</Name>
+      <Statement>
+        OT and IT networks must remain physically and logically separated. All data
+        exchange between zones must traverse controlled conduits with explicit
+        allow-list rules. No direct IT-to-OT initiation is permitted.
+      </Statement>
+      <Rationale>
+        OT systems control physical utility infrastructure. Compromise of OT systems
+        can result in physical damage, public safety incidents, and regulatory penalties.
+      </Rationale>
+      <Implications>
+        Industrial DMZ mandatory between IT and OT. Data diodes required for
+        historian replication paths. No VPN or remote access tool may bridge
+        IT and OT zones directly.
+      </Implications>
+      <References>IEC 62443-3-2 · NERC CIP-005 · ISA-99</References>
+    </Principle>
+
+    <Principle id="PRIN-ZT-006">
+      <Name>Data-Centric Security</Name>
+      <Statement>
+        Security controls follow the data, not just the network perimeter. All sensitive
+        data must be classified, encrypted, and access-controlled regardless of location —
+        at rest, in transit, and in use.
+      </Statement>
+      <Rationale>
+        Utility data includes NERC CIP-protected BES Cyber System Information,
+        customer PII, and grid topology data — all requiring different protection levels
+        that must persist beyond network boundaries.
+      </Rationale>
+      <Implications>
+        Data classification framework mandatory. Encryption at rest (AES-256) and
+        in transit (TLS 1.3) required. DLP policies must be enforced at all data egress points.
+      </Implications>
+      <References>NIST SP 800-207 · NERC CIP-011 · IEC 62351 · GDPR</References>
+    </Principle>
+
+  </ArchitecturePrinciples>
+
+  <!-- ============================================================
+       ARCHITECTURE REQUIREMENTS
+  ============================================================ -->
+  <ArchitectureRequirements>
+
+    <RequirementGroup id="REQ-GRP-001" name="Identity and Access Management">
+      <Requirement id="REQ-IAM-001" priority="Mandatory">
+        <Name>Multi-Factor Authentication — All Remote OT Access</Name>
+        <Description>MFA (FIDO2 or TOTP minimum) must be enforced for all remote access to OT systems including SCADA, EMS, DMS, and engineering workstations.</Description>
+        <Source>NERC CIP-007 R3 · IEC 62443-3-3 SR 1.1</Source>
+        <AcceptanceCriteria>Zero non-MFA remote OT sessions permitted. PAM audit log demonstrates 100% MFA coverage.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-IAM-002" priority="Mandatory">
+        <Name>Privileged Access Management — OT/IT</Name>
+        <Description>All privileged accounts for OT and IT systems must be managed via PAM solution (CyberArk). Zero standing privileges policy. JIT access with time-bound credentials.</Description>
+        <Source>NERC CIP-007 · IEC 62443-3-3 SR 1.3</Source>
+        <AcceptanceCriteria>No shared or embedded credentials. All OT access via PAM vault. Session recording enabled for all privileged sessions.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-IAM-003" priority="Mandatory">
+        <Name>Non-Human Identity — OT Device Certificates</Name>
+        <Description>All IEDs, RTUs, PLCs, and smart meters must be issued X.509 certificates from the OT PKI. Certificate-based authentication must replace username/password for OT device communications.</Description>
+        <Source>IEC 62351 · IEC 62443-3-3 SR 1.8</Source>
+        <AcceptanceCriteria>100% OT field devices enrolled in PKI. Certificate validity monitoring automated. Revocation via CRL/OCSP operational.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-IAM-004" priority="High">
+        <Name>Single Sign-On — Enterprise IT</Name>
+        <Description>All IT systems must federate to Azure AD Entra ID for SSO. SAML 2.0 or OIDC integration mandatory for all new applications.</Description>
+        <Source>NIST SP 800-207 · ISO 27001 A.9</Source>
+        <AcceptanceCriteria>No local accounts on IT systems (except break-glass). All applications SSO-enabled. Conditional access policies applied.</AcceptanceCriteria>
+      </Requirement>
+    </RequirementGroup>
+
+    <RequirementGroup id="REQ-GRP-002" name="Network Segmentation and Conduits">
+      <Requirement id="REQ-NET-001" priority="Mandatory">
+        <Name>Industrial DMZ — IT/OT Boundary</Name>
+        <Description>An industrial DMZ (iDMZ) must be implemented between IT (L4) and OT (L3) zones. No direct routing between IT and OT networks. All data exchange via controlled proxy or data diode.</Description>
+        <Source>IEC 62443-3-2 · NERC CIP-005 R1</Source>
+        <AcceptanceCriteria>Penetration test confirms no direct IT→OT path. All flows logged. Data diode deployed for historian replication.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-NET-002" priority="Mandatory">
+        <Name>Zero Trust Network Access — Remote Access</Name>
+        <Description>Legacy VPN must be replaced with ZTNA solution (Zscaler or equivalent). All remote access gated on identity + device posture. No network-level access without application-level authorisation.</Description>
+        <Source>NIST SP 800-207 · CISA ZTA Network Pillar</Source>
+        <AcceptanceCriteria>VPN decommissioned. All remote sessions via ZTNA broker. Device compliance check enforced pre-connection.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-NET-003" priority="Mandatory">
+        <Name>NGFW with ICS DPI — All Zone Boundaries</Name>
+        <Description>Next-generation firewalls with ICS-aware deep packet inspection must be deployed at every Purdue zone boundary. Default-deny policy. Explicit allow-list per protocol and direction.</Description>
+        <Source>IEC 62443-3-2 · NERC CIP-005 R2</Source>
+        <AcceptanceCriteria>No default-permit rules. ICS DPI enabled for DNP3, Modbus, IEC 61850. Quarterly rule review documented.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-NET-004" priority="High">
+        <Name>Micro-Segmentation — OT Cell/Area Zones</Name>
+        <Description>OT networks must be segmented at cell and area level per IEC 62443 zone model. Each generating unit, substation, or AMI zone must be isolated with its own security boundary.</Description>
+        <Source>IEC 62443-3-2 · NERC CIP-005</Source>
+        <AcceptanceCriteria>Zone diagram maintained and reviewed. Lateral movement between OT cells blocked. VLAN isolation per zone confirmed.</AcceptanceCriteria>
+      </Requirement>
+    </RequirementGroup>
+
+    <RequirementGroup id="REQ-GRP-003" name="Data Protection">
+      <Requirement id="REQ-DAT-001" priority="Mandatory">
+        <Name>Encryption at Rest — All Sensitive Data</Name>
+        <Description>All NERC CIP-protected data, customer PII, and grid topology data must be encrypted at rest using AES-256. Oracle DB transparent data encryption mandatory for MDMS and SAP schemas.</Description>
+        <Source>NERC CIP-011 · GDPR Art.32 · IEC 62351</Source>
+        <AcceptanceCriteria>TDE enabled on all production databases. Key management via HSM. Encryption verified in annual audit.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-DAT-002" priority="Mandatory">
+        <Name>Encryption in Transit — TLS 1.3 Minimum</Name>
+        <Description>All IT network communications must use TLS 1.3 minimum. TLS 1.0 and 1.1 must be deprecated. OT protocol security extensions (IEC 62351, OPC-UA Security) must be enabled.</Description>
+        <Source>NIST SP 800-52 Rev2 · IEC 62351 · OPC-UA Security</Source>
+        <AcceptanceCriteria>TLS scan confirms no TLS 1.0/1.1 in use. OPC-UA sign+encrypt mode enabled on all L2↔L3 sessions.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-DAT-003" priority="High">
+        <Name>Data Classification and DLP</Name>
+        <Description>All data assets must be classified per sensitivity: Public, Internal, Confidential, BES Cyber System Information (BCSI). DLP policies must prevent unauthorised exfiltration of BCSI and PII.</Description>
+        <Source>NERC CIP-011 · GDPR · ISO 27001 A.8</Source>
+        <AcceptanceCriteria>Classification labels applied to all data stores. DLP policy coverage confirmed. Monthly DLP incident report reviewed by CISO.</AcceptanceCriteria>
+      </Requirement>
+    </RequirementGroup>
+
+    <RequirementGroup id="REQ-GRP-004" name="Visibility and Monitoring">
+      <Requirement id="REQ-VIS-001" priority="Mandatory">
+        <Name>Unified SIEM — IT and OT Log Sources</Name>
+        <Description>A unified SIEM (Splunk) must ingest logs from all IT and OT systems. OT log collection must be passive and non-intrusive. Minimum 13-month log retention for NERC CIP compliance.</Description>
+        <Source>NERC CIP-007 R4 · IEC 62443-3-3 SR 6.1</Source>
+        <AcceptanceCriteria>All Purdue zones represented in SIEM. Log gap analysis monthly. 13-month retention confirmed. NERC CIP evidence extraction automated.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-VIS-002" priority="Mandatory">
+        <Name>OT Threat Detection Platform</Name>
+        <Description>A dedicated OT threat detection platform (Dragos or Claroty) must be deployed for passive monitoring of OT networks. ICS-specific threat signatures and protocol behavioural analysis required.</Description>
+        <Source>NERC CIP-007 · IEC 62443-3-3 SR 6.2</Source>
+        <AcceptanceCriteria>OT platform deployed in all OT zones. Asset inventory auto-populated. ICS-specific detections tuned. OT SOC 24x7 coverage.</AcceptanceCriteria>
+      </Requirement>
+      <Requirement id="REQ-VIS-003" priority="High">
+        <Name>UEBA — User and Entity Behaviour Analytics</Name>
+        <Description>UEBA capability (Microsoft Sentinel) must baseline normal behaviour for all privileged users and OT service accounts. Anomalous behaviour must generate alerts within 15 minutes.</Description>
+        <Source>NIST SP 800-207 · CISA ZTA Analytics Pillar</Source>
+        <AcceptanceCriteria>Baseline established for all privileged accounts. Anomaly detection rate &lt;5% false positives. Mean time to detect &lt;15 minutes.</AcceptanceCriteria>
+      </Requirement>
+    </RequirementGroup>
+
+  </ArchitectureRequirements>
+
+  <!-- ============================================================
+       ARCHITECTURE BUILDING BLOCKS (ABBs)
+  ============================================================ -->
+  <ArchitectureBuildingBlocks>
+
+    <!-- IDENTITY PILLAR ABBs -->
+    <BuildingBlock id="ABB-ID-001" type="ApplicationService" layer="Technology">
+      <Name>Enterprise Identity Provider (IdP)</Name>
+      <Description>Centralised identity service providing authentication, authorisation, and SSO for all IT systems and OT remote access pathways.</Description>
+      <Technology>Microsoft Azure AD Entra ID</Technology>
+      <Protocols>OIDC · SAML 2.0 · SCIM · Kerberos</Protocols>
+      <ZTPillar>Identity</ZTPillar>
+      <IEC62443Mapping>SR 1.1 · SR 1.2 · SR 1.3</IEC62443Mapping>
+      <NERCCIPMapping>CIP-007 R3</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-ID-002" type="ApplicationService" layer="Technology">
+      <Name>Privileged Access Management (PAM)</Name>
+      <Description>Vault-based PAM solution managing all privileged credentials for IT and OT systems. Enforces JIT access, session recording, and zero standing privileges policy.</Description>
+      <Technology>CyberArk Privileged Access Manager</Technology>
+      <Protocols>SSH · RDP · PAM REST API · LDAP</Protocols>
+      <ZTPillar>Identity</ZTPillar>
+      <IEC62443Mapping>SR 1.3 · SR 1.13</IEC62443Mapping>
+      <NERCCIPMapping>CIP-007 R5 · CIP-004 R4</NERCCIPMapping>
+      <SecurityLevel>SL-3</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-ID-003" type="TechnologyService" layer="Technology">
+      <Name>OT Public Key Infrastructure (PKI)</Name>
+      <Description>Dedicated PKI for OT domain providing X.509 certificates to IEDs, RTUs, PLCs, smart meters, and OT service accounts. Physically separated from enterprise PKI.</Description>
+      <Technology>Thales / Entrust HSM-backed CA</Technology>
+      <Protocols>PKCS#11 · EST · OCSP · CRL · X.509v3</Protocols>
+      <ZTPillar>Identity · Devices</ZTPillar>
+      <IEC62443Mapping>SR 1.8 · IEC 62351-8</IEC62443Mapping>
+      <NERCCIPMapping>CIP-005 R2</NERCCIPMapping>
+      <SecurityLevel>SL-3</SecurityLevel>
+    </BuildingBlock>
+
+    <!-- DEVICES PILLAR ABBs -->
+    <BuildingBlock id="ABB-DEV-001" type="ApplicationService" layer="Technology">
+      <Name>OT Asset Discovery and Inventory</Name>
+      <Description>Passive, non-intrusive OT asset discovery using network traffic analysis. Builds and maintains authoritative OT asset register including firmware versions and vulnerability status.</Description>
+      <Technology>Claroty Platform / Nozomi Networks</Technology>
+      <Protocols>Passive SPAN · DPI · PROFINET · DNP3 · IEC 61850</Protocols>
+      <ZTPillar>Devices · Visibility</ZTPillar>
+      <IEC62443Mapping>SR 7.8 · IEC 62443-2-1</IEC62443Mapping>
+      <NERCCIPMapping>CIP-002 · CIP-010 R2</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-DEV-002" type="ApplicationService" layer="Technology">
+      <Name>Endpoint Detection and Response (EDR/XDR)</Name>
+      <Description>IT endpoint detection and response. OT endpoints use passive-only Claroty monitoring to avoid operational impact on real-time control systems.</Description>
+      <Technology>Microsoft Defender for Endpoint (IT) · Claroty (OT)</Technology>
+      <Protocols>WMI · ETW · Sysmon · SPAN (OT passive)</Protocols>
+      <ZTPillar>Devices</ZTPillar>
+      <IEC62443Mapping>SR 6.2</IEC62443Mapping>
+      <NERCCIPMapping>CIP-007 R3</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+    <!-- NETWORK PILLAR ABBs -->
+    <BuildingBlock id="ABB-NET-001" type="TechnologyService" layer="Technology">
+      <Name>Next-Generation Firewall with ICS DPI</Name>
+      <Description>NGFW deployed at all Purdue zone boundaries. ICS-aware DPI inspects DNP3, Modbus, IEC 61850, and OPC-UA traffic. Default-deny policy with explicit protocol allow-lists per zone conduit.</Description>
+      <Technology>Palo Alto Networks PA-Series / Fortinet FortiGate</Technology>
+      <Protocols>TCP/IP · TLS · DNP3 · Modbus · IEC 61850 · OPC-UA</Protocols>
+      <ZTPillar>Network</ZTPillar>
+      <IEC62443Mapping>SR 5.1 · SR 5.2 · IEC 62443-3-2</IEC62443Mapping>
+      <NERCCIPMapping>CIP-005 R1 · CIP-005 R2</NERCCIPMapping>
+      <SecurityLevel>SL-3</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-NET-002" type="TechnologyService" layer="Technology">
+      <Name>Zero Trust Network Access (ZTNA)</Name>
+      <Description>Cloud-delivered ZTNA replacing legacy VPN. Evaluates identity, device posture, and context before granting application-level access. No implicit network access granted.</Description>
+      <Technology>Zscaler Private Access / Cloudflare Access</Technology>
+      <Protocols>mTLS · OIDC · HTTPS</Protocols>
+      <ZTPillar>Network · Identity</ZTPillar>
+      <IEC62443Mapping>SR 1.13 · SR 5.1</IEC62443Mapping>
+      <NERCCIPMapping>CIP-005 R2</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-NET-003" type="TechnologyService" layer="Technology">
+      <Name>Hardware Data Diode — Unidirectional Gateway</Name>
+      <Description>Hardware-enforced one-way data transfer from OT historian to IT data lake. Physics-based security — no TCP/IP return path possible. Used for PI historian replication and event streaming.</Description>
+      <Technology>Waterfall Security Unidirectional Security Gateway</Technology>
+      <Protocols>Unidirectional hardware — OT→IT only</Protocols>
+      <ZTPillar>Network</ZTPillar>
+      <IEC62443Mapping>SR 5.1 · SR 5.2 · IEC 62443-3-2 Zone Conduit</IEC62443Mapping>
+      <NERCCIPMapping>CIP-005 R1.5</NERCCIPMapping>
+      <SecurityLevel>SL-4</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-NET-004" type="TechnologyService" layer="Technology">
+      <Name>Industrial Demilitarised Zone (iDMZ)</Name>
+      <Description>Dual-firewall iDMZ between IT (L4) and OT (L3) zones. Hosts data diode, Kafka relay, jump server, SIEM collector, OT PKI, and patch proxy. No direct routing between IT and OT.</Description>
+      <Technology>Dual Palo Alto NGFW · Kafka · CyberArk Jump Server</Technology>
+      <Protocols>Controlled conduit protocols only</Protocols>
+      <ZTPillar>Network</ZTPillar>
+      <IEC62443Mapping>IEC 62443-3-2 Zone Model · Conduit Architecture</IEC62443Mapping>
+      <NERCCIPMapping>CIP-005</NERCCIPMapping>
+      <SecurityLevel>SL-3</SecurityLevel>
+    </BuildingBlock>
+
+    <!-- APPLICATION PILLAR ABBs -->
+    <BuildingBlock id="ABB-APP-001" type="ApplicationService" layer="Application">
+      <Name>API Gateway with mTLS</Name>
+      <Description>Managed API gateway enforcing mutual TLS, OAuth2 scoped tokens, and rate limiting for all application-to-application integrations. All inter-system calls must traverse API gateway — no point-to-point.</Description>
+      <Technology>Apigee / Kong Gateway</Technology>
+      <Protocols>REST · GraphQL · OAuth2 · mTLS · OAS 3.0</Protocols>
+      <ZTPillar>Applications</ZTPillar>
+      <IEC62443Mapping>SR 1.2 · SR 2.1</IEC62443Mapping>
+      <NERCCIPMapping>CIP-005 R2</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-APP-002" type="TechnologyService" layer="Technology">
+      <Name>OPC-UA Secure Channel</Name>
+      <Description>OPC-UA security mode Sign+Encrypt enforced for all L2↔L3 communications. Certificate-based mutual authentication between SCADA server, HMI, DCS, and engineering workstations.</Description>
+      <Technology>OPC Foundation UA Security · Certificate-based</Technology>
+      <Protocols>OPC-UA · Sign+Encrypt · X.509 · TLS</Protocols>
+      <ZTPillar>Applications · Identity</ZTPillar>
+      <IEC62443Mapping>SR 1.8 · SR 4.1 · IEC 62351-7</IEC62443Mapping>
+      <NERCCIPMapping>CIP-005</NERCCIPMapping>
+      <SecurityLevel>SL-3</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-APP-003" type="ApplicationService" layer="Application">
+      <Name>Secrets Management Platform</Name>
+      <Description>Dynamic secrets management for application credentials, API keys, and database passwords. Auto-rotating credentials eliminate long-lived secrets. Kubernetes and CI/CD pipeline integration.</Description>
+      <Technology>HashiCorp Vault Enterprise</Technology>
+      <Protocols>Vault API · mTLS · LDAP · Kubernetes SA</Protocols>
+      <ZTPillar>Applications · Data</ZTPillar>
+      <IEC62443Mapping>SR 1.8</IEC62443Mapping>
+      <NERCCIPMapping>CIP-007 R5</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+    <!-- DATA PILLAR ABBs -->
+    <BuildingBlock id="ABB-DAT-001" type="ApplicationService" layer="Application">
+      <Name>Data Classification and DLP</Name>
+      <Description>Automated data classification applying sensitivity labels to all data assets. DLP policies prevent unauthorised exfiltration of BCSI, PII, and grid topology data at all egress points.</Description>
+      <Technology>Microsoft Purview Information Protection</Technology>
+      <Protocols>MIP Labels · DLP Policy Engine · REST API</Protocols>
+      <ZTPillar>Data</ZTPillar>
+      <IEC62443Mapping>SR 4.1 · SR 4.2</IEC62443Mapping>
+      <NERCCIPMapping>CIP-011 R1</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-DAT-002" type="TechnologyService" layer="Technology">
+      <Name>Hardware Security Module (HSM) and Key Management</Name>
+      <Description>FIPS 140-2 Level 3 HSMs providing hardware root of trust for all cryptographic operations. Centralised key management lifecycle for enterprise and OT PKI, database encryption, and TLS certificates.</Description>
+      <Technology>Thales Luna HSM / Entrust nShield</Technology>
+      <Protocols>PKCS#11 · KMIP · REST API</Protocols>
+      <ZTPillar>Data · Identity</ZTPillar>
+      <IEC62443Mapping>SR 1.8 · IEC 62351</IEC62443Mapping>
+      <NERCCIPMapping>CIP-011</NERCCIPMapping>
+      <SecurityLevel>SL-3</SecurityLevel>
+    </BuildingBlock>
+
+    <!-- VISIBILITY PILLAR ABBs -->
+    <BuildingBlock id="ABB-VIS-001" type="ApplicationService" layer="Application">
+      <Name>Security Information and Event Management (SIEM)</Name>
+      <Description>Unified SIEM ingesting IT and OT log sources. Provides correlation rules, automated alerting, NERC CIP evidence collection, and feeds SOAR for automated response.</Description>
+      <Technology>Splunk Enterprise Security</Technology>
+      <Protocols>Splunk HEC · Syslog · REST API · Universal Forwarder</Protocols>
+      <ZTPillar>Visibility</ZTPillar>
+      <IEC62443Mapping>SR 6.1 · SR 6.2</IEC62443Mapping>
+      <NERCCIPMapping>CIP-007 R4 · CIP-008</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-VIS-002" type="ApplicationService" layer="Application">
+      <Name>OT Threat Detection Platform</Name>
+      <Description>Dedicated ICS threat detection using passive network monitoring. Provides OT-specific threat intelligence, protocol behavioural analysis, asset inventory, and integration to SIEM/SOAR.</Description>
+      <Technology>Dragos Platform / Claroty Continuous Threat Detection</Technology>
+      <Protocols>Passive SPAN · DNP3 · IEC 61850 · Modbus · PROFINET</Protocols>
+      <ZTPillar>Visibility · Devices</ZTPillar>
+      <IEC62443Mapping>SR 6.1 · SR 6.2 · IEC 62443-3-3</IEC62443Mapping>
+      <NERCCIPMapping>CIP-007 R4</NERCCIPMapping>
+      <SecurityLevel>SL-3</SecurityLevel>
+    </BuildingBlock>
+
+    <BuildingBlock id="ABB-VIS-003" type="ApplicationService" layer="Application">
+      <Name>User and Entity Behaviour Analytics (UEBA)</Name>
+      <Description>ML-based behaviour analytics baselining normal patterns for users, service accounts, and OT entities. Detects lateral movement, impossible travel, privilege escalation, and anomalous OT commands.</Description>
+      <Technology>Microsoft Sentinel UEBA</Technology>
+      <Protocols>REST API · KQL · Azure Monitor · CEF</Protocols>
+      <ZTPillar>Visibility · Identity</ZTPillar>
+      <IEC62443Mapping>SR 6.2</IEC62443Mapping>
+      <NERCCIPMapping>CIP-007 R4</NERCCIPMapping>
+      <SecurityLevel>SL-2</SecurityLevel>
+    </BuildingBlock>
+
+  </ArchitectureBuildingBlocks>
+
+  <!-- ============================================================
+       SOLUTION BUILDING BLOCKS (SBBs)
+  ============================================================ -->
+  <SolutionBuildingBlocks>
+
+    <SolutionBuildingBlock id="SBB-001" implements="ABB-ID-001">
+      <Name>Azure AD Entra ID — Production Tenant</Name>
+      <Vendor>Microsoft</Vendor>
+      <Product>Azure Active Directory / Microsoft Entra ID P2</Product>
+      <Version>Current</Version>
+      <LicenceModel>Per-user P2</LicenceModel>
+      <DeploymentModel>Cloud-hosted (Azure)</DeploymentModel>
+    </SolutionBuildingBlock>
+
+    <SolutionBuildingBlock id="SBB-002" implements="ABB-ID-002">
+      <Name>CyberArk PAM — Enterprise Vault</Name>
+      <Vendor>CyberArk</Vendor>
+      <Product>CyberArk Privileged Access Manager Self-Hosted</Product>
+      <Version>14.x</Version>
+      <LicenceModel>Per-vault</LicenceModel>
+      <DeploymentModel>On-premises (high-availability pair)</DeploymentModel>
+    </SolutionBuildingBlock>
+
+    <SolutionBuildingBlock id="SBB-003" implements="ABB-NET-001">
+      <Name>Palo Alto NGFW — Zone Firewalls</Name>
+      <Vendor>Palo Alto Networks</Vendor>
+      <Product>PA-5400 Series (perimeter) · PA-3400 Series (zone)</Product>
+      <Version>PAN-OS 11.x</Version>
+      <LicenceModel>Perpetual + Threat Prevention subscription</LicenceModel>
+      <DeploymentModel>On-premises — all Purdue zone boundaries</DeploymentModel>
+    </SolutionBuildingBlock>
+
+    <SolutionBuildingBlock id="SBB-004" implements="ABB-NET-003">
+      <Name>Waterfall Data Diode — Historian Replication</Name>
+      <Vendor>Waterfall Security Solutions</Vendor>
+      <Product>Waterfall Unidirectional Security Gateway</Product>
+      <Version>Current</Version>
+      <LicenceModel>Perpetual hardware</LicenceModel>
+      <DeploymentModel>Hardware appliance — iDMZ boundary</DeploymentModel>
+    </SolutionBuildingBlock>
+
+    <SolutionBuildingBlock id="SBB-005" implements="ABB-VIS-001">
+      <Name>Splunk Enterprise Security — Production</Name>
+      <Vendor>Splunk Inc.</Vendor>
+      <Product>Splunk Enterprise Security 7.x + SOAR</Product>
+      <Version>7.3.x</Version>
+      <LicenceModel>Ingest-based (GB/day)</LicenceModel>
+      <DeploymentModel>On-premises cluster (IT+OT data separation by index)</DeploymentModel>
+    </SolutionBuildingBlock>
+
+    <SolutionBuildingBlock id="SBB-006" implements="ABB-VIS-002">
+      <Name>Dragos Platform — OT SOC</Name>
+      <Vendor>Dragos Inc.</Vendor>
+      <Product>Dragos Platform — Industrial Cybersecurity</Product>
+      <Version>Current</Version>
+      <LicenceModel>Per-asset</LicenceModel>
+      <DeploymentModel>On-premises — passive sensors in all OT zones</DeploymentModel>
+    </SolutionBuildingBlock>
+
+  </SolutionBuildingBlocks>
+
+  <!-- ============================================================
+       ARCHITECTURE DECISIONS
+  ============================================================ -->
+  <ArchitectureDecisions>
+
+    <Decision id="AD-001" status="Approved" date="2025-01-15">
+      <Name>ZTNA to Replace VPN for All OT Remote Access</Name>
+      <Issue>Legacy VPN provides implicit network access and cannot enforce device posture checks, creating unacceptable risk for OT remote access.</Issue>
+      <Decision>Deploy Zscaler Private Access as ZTNA solution. Legacy VPN to be decommissioned by Q4 2025. All OT vendor remote access migrated to ZTNA + PAM JIT model.</Decision>
+      <Alternatives>
+        <Alternative>Upgrade VPN with additional NAC — Rejected: Does not eliminate implicit network trust</Alternative>
+        <Alternative>Software-defined perimeter (SDP) — Rejected: Vendor maturity concerns for OT use cases</Alternative>
+      </Alternatives>
+      <Consequences>VPN infrastructure decommission cost saving. Increased visibility of all remote sessions. Vendor access process change required.</Consequences>
+      <ApprovedBy>Architecture Review Board</ApprovedBy>
+    </Decision>
+
+    <Decision id="AD-002" status="Approved" date="2025-01-15">
+      <Name>Hardware Data Diode for All Historian Replication</Name>
+      <Issue>Software-based data transfer solutions between OT historian and IT data lake present attack surface — TCP/IP return path can be exploited.</Issue>
+      <Decision>Deploy Waterfall hardware data diode for all OSIsoft PI historian replication from OT (L3) to IT (L4). Software-based replication tools decommissioned.</Decision>
+      <Alternatives>
+        <Alternative>Software proxy with strict firewall rules — Rejected: TCP return path remains a risk vector</Alternative>
+        <Alternative>Manual data transfer (USB) — Rejected: Operationally impractical and introduces physical media risks</Alternative>
+      </Alternatives>
+      <Consequences>One-way replication only — no writeback from IT to OT historian. Additional latency of 30–60 seconds acceptable for analytics use cases.</Consequences>
+      <ApprovedBy>Architecture Review Board · CISO</ApprovedBy>
+    </Decision>
+
+    <Decision id="AD-003" status="Approved" date="2025-02-01">
+      <Name>Dedicated OT PKI Separate from Enterprise PKI</Name>
+      <Issue>Sharing enterprise PKI for OT device certificates creates dependency on IT availability and increases blast radius if enterprise PKI is compromised.</Issue>
+      <Decision>Deploy dedicated OT PKI with offline root CA and HSM-backed issuing CA. OT PKI physically isolated in OT network. Enterprise PKI continues for IT systems only.</Decision>
+      <Alternatives>
+        <Alternative>Shared enterprise PKI with dedicated OT issuing CA — Rejected: Shared root CA creates unacceptable cross-domain risk</Alternative>
+      </Alternatives>
+      <Consequences>Separate PKI operational team and processes required. Additional HSM hardware cost. Improved OT resilience and isolation.</Consequences>
+      <ApprovedBy>Architecture Review Board · CISO · OT Manager</ApprovedBy>
+    </Decision>
+
+  </ArchitectureDecisions>
+
+  <!-- ============================================================
+       ZT MATURITY MODEL — TARGET STATE
+  ============================================================ -->
+  <MaturityAssessment framework="CISA Zero Trust Maturity Model v2">
+
+    <Pillar id="MAT-01" name="Identity" targetLevel="Advanced">
+      <CurrentLevel>Initial</CurrentLevel>
+      <TargetLevel>Advanced</TargetLevel>
+      <TargetPercentage>90</TargetPercentage>
+      <TargetDate>2026-Q2</TargetDate>
+      <KeyInitiatives>
+        <Initiative>MFA enforced — all users and remote access (Q2 2025)</Initiative>
+        <Initiative>PAM JIT access model — all OT systems (Q3 2025)</Initiative>
+        <Initiative>X.509 device certificates — all IEDs and RTUs (Q4 2025)</Initiative>
+        <Initiative>Continuous access evaluation via Entra ID CAE (Q1 2026)</Initiative>
+      </KeyInitiatives>
+    </Pillar>
+
+    <Pillar id="MAT-02" name="Devices" targetLevel="Advanced">
+      <CurrentLevel>Initial</CurrentLevel>
+      <TargetLevel>Advanced</TargetLevel>
+      <TargetPercentage>80</TargetPercentage>
+      <TargetDate>2026-Q3</TargetDate>
+      <KeyInitiatives>
+        <Initiative>OT asset discovery — Claroty passive deployment (Q2 2025)</Initiative>
+        <Initiative>IT EDR (Defender) — 100% endpoint coverage (Q2 2025)</Initiative>
+        <Initiative>Device compliance gating for ZTNA access (Q3 2025)</Initiative>
+        <Initiative>Vulnerability management programme — OT patching (Q4 2025)</Initiative>
+      </KeyInitiatives>
+    </Pillar>
+
+    <Pillar id="MAT-03" name="Network" targetLevel="Advanced">
+      <CurrentLevel>Initial</CurrentLevel>
+      <TargetLevel>Advanced</TargetLevel>
+      <TargetPercentage>85</TargetPercentage>
+      <TargetDate>2026-Q2</TargetDate>
+      <KeyInitiatives>
+        <Initiative>iDMZ deployment — IT/OT boundary (Q1 2025)</Initiative>
+        <Initiative>ZTNA replacing VPN — all remote access (Q4 2025)</Initiative>
+        <Initiative>Data diode — historian replication (Q2 2025)</Initiative>
+        <Initiative>OT micro-segmentation — cell/area level (Q2 2026)</Initiative>
+      </KeyInitiatives>
+    </Pillar>
+
+    <Pillar id="MAT-04" name="Applications" targetLevel="Initial-to-Advanced">
+      <CurrentLevel>Traditional</CurrentLevel>
+      <TargetLevel>Advanced</TargetLevel>
+      <TargetPercentage>75</TargetPercentage>
+      <TargetDate>2026-Q4</TargetDate>
+      <KeyInitiatives>
+        <Initiative>API gateway — all inter-system integration (Q3 2025)</Initiative>
+        <Initiative>OPC-UA sign+encrypt — L2/L3 communications (Q4 2025)</Initiative>
+        <Initiative>Secrets management — HashiCorp Vault (Q2 2026)</Initiative>
+        <Initiative>Application threat modelling programme (Q3 2026)</Initiative>
+      </KeyInitiatives>
+    </Pillar>
+
+    <Pillar id="MAT-05" name="Data" targetLevel="Initial-to-Advanced">
+      <CurrentLevel>Traditional</CurrentLevel>
+      <TargetLevel>Advanced</TargetLevel>
+      <TargetPercentage>70</TargetPercentage>
+      <TargetDate>2027-Q1</TargetDate>
+      <KeyInitiatives>
+        <Initiative>Data classification — all BCSI and PII assets (Q3 2025)</Initiative>
+        <Initiative>Database TDE — Oracle MDMS and SAP (Q4 2025)</Initiative>
+        <Initiative>DLP policies — all data egress points (Q1 2026)</Initiative>
+        <Initiative>Data access governance — Varonis deployment (Q2 2026)</Initiative>
+      </KeyInitiatives>
+    </Pillar>
+
+    <Pillar id="MAT-06" name="Visibility and Analytics" targetLevel="Optimal">
+      <CurrentLevel>Initial</CurrentLevel>
+      <TargetLevel>Optimal</TargetLevel>
+      <TargetPercentage>95</TargetPercentage>
+      <TargetDate>2026-Q1</TargetDate>
+      <KeyInitiatives>
+        <Initiative>Splunk SIEM — IT+OT unified log ingestion (Q2 2025)</Initiative>
+        <Initiative>Dragos OT threat detection — all OT zones (Q3 2025)</Initiative>
+        <Initiative>SOAR playbooks — OT incident response (Q4 2025)</Initiative>
+        <Initiative>UEBA — Sentinel ML anomaly detection (Q1 2026)</Initiative>
+        <Initiative>Continuous compliance monitoring — NERC CIP automated (Q1 2026)</Initiative>
+      </KeyInitiatives>
+    </Pillar>
+
+  </MaturityAssessment>
+
+  <!-- ============================================================
+       COMPLIANCE MAPPING
+  ============================================================ -->
+  <ComplianceMapping>
+
+    <Standard id="COMP-001" name="NERC CIP">
+      <MappedRequirements>
+        <Map cip="CIP-002" description="BES Cyber System Categorisation" abbs="ABB-DEV-001"/>
+        <Map cip="CIP-004" description="Personnel and Training" abbs="ABB-ID-002"/>
+        <Map cip="CIP-005" description="Electronic Security Perimeters" abbs="ABB-NET-001 ABB-NET-004"/>
+        <Map cip="CIP-006" description="Physical Security" abbs="N/A — Physical Controls"/>
+        <Map cip="CIP-007" description="System Security Management" abbs="ABB-DEV-002 ABB-VIS-001 ABB-VIS-002"/>
+        <Map cip="CIP-008" description="Incident Reporting and Response" abbs="ABB-VIS-001 ABB-VIS-002"/>
+        <Map cip="CIP-009" description="Recovery Plans" abbs="ABB-VIS-001"/>
+        <Map cip="CIP-010" description="Configuration Change Management" abbs="ABB-DEV-001"/>
+        <Map cip="CIP-011" description="Information Protection" abbs="ABB-DAT-001 ABB-DAT-002"/>
+        <Map cip="CIP-013" description="Supply Chain Risk Management" abbs="ABB-ID-002 ABB-NET-001"/>
+      </MappedRequirements>
+    </Standard>
+
+    <Standard id="COMP-002" name="IEC 62443">
+      <MappedRequirements>
+        <Map requirement="SR 1.1–1.13" description="Identification and Authentication" abbs="ABB-ID-001 ABB-ID-002 ABB-ID-003"/>
+        <Map requirement="SR 2.1–2.12" description="Use Control" abbs="ABB-ID-001 ABB-ID-002 ABB-APP-003"/>
+        <Map requirement="SR 3.1–3.9" description="System Integrity" abbs="ABB-DEV-002 ABB-APP-001"/>
+        <Map requirement="SR 4.1–4.3" description="Data Confidentiality" abbs="ABB-DAT-001 ABB-DAT-002"/>
+        <Map requirement="SR 5.1–5.4" description="Restricted Data Flow" abbs="ABB-NET-001 ABB-NET-002 ABB-NET-003 ABB-NET-004"/>
+        <Map requirement="SR 6.1–6.2" description="Timely Response to Events" abbs="ABB-VIS-001 ABB-VIS-002 ABB-VIS-003"/>
+        <Map requirement="SR 7.1–7.9" description="Resource Availability" abbs="ABB-NET-001 ABB-DEV-001"/>
+      </MappedRequirements>
+    </Standard>
+
+    <Standard id="COMP-003" name="NIST SP 800-207 Zero Trust Architecture">
+      <MappedRequirements>
+        <Map requirement="ZT Principle 1" description="All data sources treated as resources" abbs="ABB-DAT-001"/>
+        <Map requirement="ZT Principle 2" description="All communications secured regardless of location" abbs="ABB-NET-002 ABB-APP-001"/>
+        <Map requirement="ZT Principle 3" description="Access per-session, least privilege" abbs="ABB-ID-001 ABB-ID-002"/>
+        <Map requirement="ZT Principle 4" description="Access determined by dynamic policy" abbs="ABB-ID-001 ABB-VIS-003"/>
+        <Map requirement="ZT Principle 5" description="Monitor integrity and security posture" abbs="ABB-DEV-001 ABB-DEV-002"/>
+        <Map requirement="ZT Principle 6" description="Authentication/authorisation before access" abbs="ABB-ID-001 ABB-ID-002 ABB-ID-003"/>
+        <Map requirement="ZT Principle 7" description="Collect and analyse information" abbs="ABB-VIS-001 ABB-VIS-002 ABB-VIS-003"/>
+      </MappedRequirements>
+    </Standard>
+
+  </ComplianceMapping>
+
+  <!-- ============================================================
+       GAPS AND RISKS
+  ============================================================ -->
+  <ArchitectureGapsAndRisks>
+
+    <Gap id="GAP-001" priority="High">
+      <Name>OT Device Certificate Coverage — Legacy IEDs</Name>
+      <Description>Approximately 35% of deployed IEDs are pre-IEC 61850 Edition 2 and cannot support X.509 certificate authentication. Compensating controls required until device replacement programme completes.</Description>
+      <CompensatingControl>Physical port locking, VLAN isolation, enhanced monitoring via Dragos passive DPI</CompensatingControl>
+      <Resolution>IED replacement programme — Q4 2026</Resolution>
+    </Gap>
+
+    <Gap id="GAP-002" priority="High">
+      <Name>OT Patch Management — Unpatched Legacy Controllers</Name>
+      <Description>Multiple PLCs and RTUs running end-of-support firmware with known CVEs. Vendor patch testing cycles extend to 12–18 months for critical control systems.</Description>
+      <CompensatingControl>Network segmentation, Dragos monitoring, change freeze on affected systems</CompensatingControl>
+      <Resolution>Accelerated vendor patch qualification programme — ongoing</Resolution>
+    </Gap>
+
+    <Gap id="GAP-003" priority="Medium">
+      <Name>OT Micro-Segmentation — Cell/Area Level</Name>
+      <Description>Current OT network segmentation is at zone level (L1/L2/L3). Cell and area level micro-segmentation required per IEC 62443-3-2 but not yet implemented.</Description>
+      <CompensatingControl>Enhanced monitoring and strict zone-level firewall rules</CompensatingControl>
+      <Resolution>OT micro-segmentation project — H2 2026</Resolution>
+    </Gap>
+
+    <Gap id="GAP-004" priority="Medium">
+      <Name>Third-Party Vendor Access — OT Systems</Name>
+      <Description>Some OT vendors still using legacy VPN or direct modem connections for remote maintenance. Transition to ZTNA + PAM JIT model requires vendor contractual and technical changes.</Description>
+      <CompensatingControl>Enhanced monitoring of vendor sessions, time-restricted access windows</CompensatingControl>
+      <Resolution>Vendor access policy update and ZTNA onboarding — Q3 2025</Resolution>
+    </Gap>
+
+  </ArchitectureGapsAndRisks>
+
+</ArchitectureRepository>
