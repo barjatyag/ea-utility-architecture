@@ -72,8 +72,8 @@ You can publish these as a live portfolio using **GitHub Pages**:
 
 ## Connect
 
-- **LinkedIn:** [linkedin.com/in/your-profile](https://linkedin.com/in/your-profile)
-- **Email:** your@email.com
+- **LinkedIn:** [linkedin.com/in/your-profile](https://www.linkedin.com/in/gaganbarjatyaea/)
+- **Email:** barjatyagagan@gmail.com
 
 ---
 
